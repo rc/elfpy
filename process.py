@@ -116,6 +116,32 @@ def split_curve(stress, strain, eps_r = 0.02,  def_ss=0, def_ls = [0,0],
     else:
         return ii
 
+def get_ultimate_values(strain, stress):
+    
+    dstress= np.diff(stress, n=1)/ np.diff(strain, n=1)
+        
+    ii = np.where(dstress < 0)[0]
+    if len(ii) == 0:
+        print 'warning: stress does not decrease'
+        index_ultimate_strength = len(stress)-1
+    else:
+        index_ultimate_strength = np.where(stress[ii] > 0.1*stress.max())[0]
+        if len(index_ultimate_strength ) == 0:
+            index_ultimate_strength = ii[0]
+            print 'warning: ultimate stress is less then 0.1*max stress'
+        else:
+            index_ultimate_strength = ii[index_ultimate_strength[0]]
+    print 'index_ultimate strength', index_ultimate_strength
+        
+    ultim_strain=strain[index_ultimate_strength]
+    ultim_stress=stress[index_ultimate_strength]
+    print 'ultim_strain, ultim_stress', ultim_strain, ultim_stress
+    
+    p.plot([ultim_strain], [ultim_stress], 'g+', ms=10)
+    
+    return ultim_strain, ultim_stress
+    
+    
 def fit_data(filename, options, lengths, areas, isPlot = 2):
     """isPlot=0 nekresli nic, isPlot=1 vysledek, isPlot=2 vsechny"""
 
@@ -250,7 +276,22 @@ def fit_stress_strain_lines( fig, filename, strain, stress, options, cc,
     p.figure(fig)
     if isPlot:
         p.clf()
-    h_data = p.plot(x, y, color=color_vector[cc,:3], marker=markers[cc], markersize = 3, label=filename)
+    
+    if options.cut_strain == 0.0:
+        h_data = p.plot(x, y, color=color_vector[cc,:3], marker=markers[cc], 
+                             markersize = 3, label=filename)
+    elif options.cut_strain > x[-1]:
+        print 'Warning: value of strain out of range'
+        h_data = p.plot(x, y, color=color_vector[cc,:3], marker=markers[cc], 
+                             markersize = 3, label=filename)
+    else:
+        indexes_cut_strain = np.where( x >= options.cut_strain)
+        index_cut_strain = indexes_cut_strain[0][0]
+        print 'index_cut_strain', index_cut_strain
+        h_data = p.plot(x[:index_cut_strain], y[:index_cut_strain], 
+                                 color=color_vector[cc,:3], marker=markers[cc], 
+                                 markersize = 3, label=filename)
+                
     #p.plot( x, y, color_vector[cc,:3], markersize = 3 )
     p.plot(x[[imin0,imin1]], y[[imin0,imin1]], 'gs')
     p.plot(x[[imax0,imax1]], y[[imax0,imax1]], 'rs')
@@ -299,6 +340,11 @@ help = {
     'save the pictures with evaluated curves and files with mechanical properties',
     'mean_val' :
     'count the mean value of moduli of elasticity of all inserted stress-strain curves',
+    'cut_strain' :
+    'cut the region of defined strain [default: %default]',
+    'ultim_val' :
+    'get ultimate values of stress and strain',
+    
  }
 
 class Cycler(list):
@@ -339,16 +385,22 @@ def main():
     parser.add_option("", "--mean-val", 
                       action="store_true", dest="mean_val",
                       default=False, help=help['mean_val'])
+    parser.add_option("", "--cut-strain", type=float, metavar='float',
+                      action="store", dest="cut_strain",
+                      default='0.0', help=help['cut_strain'])
+    parser.add_option("", "--ultim-val", 
+                      action="store_true", dest="ultim_val",
+                      default=False, help=help['ultim_val'])
     options, args = parser.parse_args()
     
     options.def_ls = [float(r) for r in  options.def_ls.split(',')]
     print options
     #raw_input()
        
-    colors = Cycler([(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (0.0, 0.75, 0.0),
-                     (0.0, 0.0, 1.0), (0.6, 0.0, 1.0), (1.0, 0.0, 0.8),
-                     (1.0, 1.0, 0.0), (0.5, 1.0, 0.5), (0.5, 1.0, 1.0), 
-                     (0.8, 0.0, 0.2), (0.0, 0.0, 0.4)])
+    colors = Cycler([(0.0, 0.0, 0.0), 
+                     (0.6, 0.0, 1.0),   
+                     (1.0, 1.0, 0.0), (1.0, 0.0, 0.8), (0.5, 1.0, 0.5), (0.5, 1.0, 1.0), 
+                     (0.8, 0.0, 0.2), (1.0, 0.0, 0.0), (0.0, 0.0, 0.4), (0.0, 0.0, 1.0), (0.0, 0.75, 0.0),])
     
     markers = Cycler(['o', 'v', 's','^', '<',  'D', '>', 'x', 'p', 'h', '+'])
     
@@ -394,6 +446,8 @@ def main():
     list_fits = []
     ks = []
     h_datas = []
+    ult_strain=[]
+    ult_stress=[]
     k_fig = 5
     for i_file in range( 0, file_number ):
         filename = args[i_file]
@@ -407,14 +461,33 @@ def main():
                                                                    isPlot = isPlot )
             ks.append( (k0, k1) )
             h_datas.append(h_data)
-        
+            
+            if options.ultim_val:
+                ultim_strain, ultim_stress = get_ultimate_values(strain, stress)
+                ult_strain.append(ultim_strain)                                                       
+                ult_stress.append(ultim_stress)
+            
         if i_file == 0:
             avg_fits = np.zeros_like(fits)
         avg_fits += fits
         all_fits[filename] = fits
         list_fits.append(fits)
     avg_fits /= float(file_number)
-
+    
+    
+    if options.ultim_val:
+        ult_strain = np.array(ult_strain, dtype = np.float64)
+        ult_strain_average = np.sum(ult_strain, 0) / ult_strain.shape[0]
+        ult_strain_dev = np.std(ult_strain, 0)
+        print 'ultimate_strain', ult_strain_average, '\pm', ult_strain_dev
+    
+        ult_stress = np.array(ult_stress, dtype = np.float64)
+        ult_stress_average = np.sum(ult_stress, 0) / ult_stress.shape[0]
+        ult_stress_dev = np.std(ult_stress, 0)
+        print 'ultimate_stress', ult_stress_average, '\pm', ult_stress_dev
+    
+    
+    
     list_fits.insert(0, avg_fits)
     a_fits = np.array(list_fits, dtype = np.float64).T
     print a_fits.shape
@@ -454,7 +527,8 @@ def main():
             #~ p.setp( tt[1], 'text', texts[1], 'fontsize', 10 )
             leg = make_legend_text(args, ks)
             #~ p.legend(h_datas + h_fit, leg + texts, loc = 'upper right', prop=fp)
-            fig.legend(h_datas, leg, loc = (0.6, 0.65), prop=fp)
+            fig.legend(h_datas, leg, loc = (0.6, 0.35), prop=fp)
+            #fig.legend(h_datas, leg, loc = (0.6, 0.65), prop=fp)
             #fig.legend(h_datas, leg, loc = 'upper right', prop=fp)
             p.legend(h_fit, texts, loc = 'lower right', prop=fp)
             
@@ -503,7 +577,7 @@ def main():
         else:
             pass
                     
-        p.legend(loc = 'lower right' , prop=fp)
+        p.legend(loc = 'upper right' , prop=fp)
         p.xlim(0, a_fits.shape[0] + 1)
         p.xlabel('cycle number')
         p.ylabel('modulus of elasticity [MPa]')
