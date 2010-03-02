@@ -59,20 +59,24 @@ def split_chunks(strain, time, options, eps_r = 0.01, split = False,
     else:
         return ii
 
-def split_curve(stress, strain, eps_r = 0.02,  def_ss=0, def_ls = [0,0], 
+def split_curve(stress, strain, eps_r ,  def_ss=0, def_ls = [0,0], 
                        split = False, append = False):
     
     dstress= np.diff(stress, n=1)/ np.diff(strain, n=1)
     ddstress = np.diff(dstress)
     
     eps = eps_r * (ddstress.max() - ddstress.min())
-    p1 = np.where(dstress >= 0)[0]
+    p1 = np.where(dstress >= 0)[0] 
+    #print 'p1', p1
     p2 = np.ediff1d(p1, to_end = 2 )
+    #print 'p2', p2
     p3 = np.where(p2 > 1)[0]
-    if p3[0] == 0:
+    #print 'p3', p3
+    if p3[0] == 0 or p3[0] == 1:
         index_value = p1[-1]
     else:
         index_value = p1[p3][0]
+    print 'index_value', index_value
     #bii= np.where( (np.abs(ddstress) < eps)  & (dstress[:-1] >= 0) )[0]
     bii= np.where(np.abs(ddstress) < eps)[0]
     index = np.where (bii < index_value) [0]
@@ -93,7 +97,7 @@ def split_curve(stress, strain, eps_r = 0.02,  def_ss=0, def_ls = [0,0],
                 chunk = ii[ic0:ic+1]
                 ic0 = ic + 1
             chunks.append(chunk)
-        #print chunks
+        print 'chunks', chunks
         if def_ss == 0 :
             pass
             #print 'def_ss == 0, chunks',  chunks
@@ -257,7 +261,7 @@ def fit_stress_strain_lines( fig, filename, strain, stress, options, cc,
                                     color_vector, markers, isPlot = False ):
     x, y = strain, stress
         
-    ii, chunks = split_curve(stress, strain, def_ss = options.def_ss, 
+    ii, chunks = split_curve(stress, strain, eps_r = options.sensitivity, def_ss = options.def_ss, 
                                     def_ls = options.def_ls, split = True, 
                                     append = True)
     #ii, chunks = splitCurve( stress, strain, epsR = 0.01,  def_ss = 0 , def_ls = [0,0], 
@@ -278,7 +282,11 @@ def fit_stress_strain_lines( fig, filename, strain, stress, options, cc,
         p.clf()
     
     if options.cut_strain == 0.0:
-        h_data = p.plot(x, y, color=color_vector[cc,:3], marker=markers[cc], 
+        if options.sampling == 0:
+            h_data = p.plot(x, y, color=color_vector[cc,:3], marker=markers[cc], 
+                             markersize = 3, label=filename)
+        else:
+            h_data = p.plot(x[::options.sampling], y[::options.sampling], color=color_vector[cc,:3], marker=markers[cc], 
                              markersize = 3, label=filename)
     elif options.cut_strain > x[-1]:
         print 'Warning: value of strain out of range'
@@ -314,7 +322,7 @@ def make_legend_text(args, ks):
                  #~ % (args[ii], ks[ii][0], ks[ii][1])]
         #~ tt = p.getp( axLegend, 'texts' )
         #~ p.setp( tt[0], 'text', texts[0], 'fontsize', 10 )
-        leg.append('%s,\n $E_0 = %.2f $, $E_1 = %.2f $'
+        leg.append('%s,\n $E_0 = %.6f $, $E_1 = %.6f $'
                         % (op.splitext(arg)[0], ks[ii][0], ks[ii][1]))
     return leg
 
@@ -344,8 +352,11 @@ help = {
     'cut the region of defined strain [default: %default]',
     'ultim_val' :
     'get ultimate values of stress and strain',
-    
- }
+    'sampling' :
+    'the sampling interval',
+    'sensitivity' :
+    'the sensitivity of aproximation [default: %default]',
+}
 
 class Cycler(list):
     def __init__(self, sequence):
@@ -391,6 +402,12 @@ def main():
     parser.add_option("", "--ultim-val", 
                       action="store_true", dest="ultim_val",
                       default=False, help=help['ultim_val'])
+    parser.add_option("", "--sampling", type=int, metavar='int',
+                      action="store", dest="sampling",
+                      default='0', help=help['sampling'])
+    parser.add_option("", "--sensitivity", type=float, metavar='float',
+                      action="store", dest="sensitivity",
+                      default='0.01', help=help['sensitivity'])
     options, args = parser.parse_args()
     
     options.def_ls = [float(r) for r in  options.def_ls.split(',')]
@@ -545,6 +562,7 @@ def main():
             leg = make_legend_text(args, ks)
             p.xlabel( 'strain' )
             p.ylabel( 'stress [MPa]' )
+            #p.legend(h_datas, leg, loc = 'upper right', prop=fp)
             p.legend(h_datas, leg, loc = 'upper right', prop=fp)
             if options.s:
                 fig_name = op.splitext(filename_out)[0] + '_stress_strain.pdf'
