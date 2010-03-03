@@ -8,7 +8,9 @@ import pylab as p
 from optparse import OptionParser
 import matplotlib.font_manager as fm
 #import pdb; pdb.set_trace()
-    
+from base import Config, Object, pause, output
+
+
 def read_file_info(filename):
     fd = open(filename, 'r')
     info = {}
@@ -325,19 +327,35 @@ def make_legend_text(args, ks):
         leg.append('%s,\n $E_0 = %.6f $, $E_1 = %.6f $'
                         % (op.splitext(arg)[0], ks[ii][0], ks[ii][1]))
     return leg
-
+    
 
 usage = """%prog [options] files file_out"""
 
+default_options = {
+    'def_ss' : 0,
+    'def_ls': '0,0',
+    'legend_fontsize' : 10,
+    'file_name_out' : 'results',
+    'one_cycle' : False,
+    'cycles' : False,
+    'cut_first_cycle' : False,
+    's' : False,
+    'mean_val' : False,
+    'cut_strain' : False,
+    'ultim_val' : False,
+    'sampling' : 0,
+    'sensitivity' : 0.01,
+} 
+
 help = {
     'def_ss' :
-    'the final value of strain for small deformations [default: %default]',
+    'the final value of strain for small deformations [default: %s]'  % default_options['def_ss'], 
     'def_ls' :
-    'the interval of strain for large deformations [default: %default]',
+    'the interval of strain for large deformations [default: %s]'  % (default_options['def_ls'],), 
     'legend_fontsize' :
-    'a fontsize of the legends [default: %default]',
+    'a fontsize of the legends [default: %s]'  % default_options['legend_fontsize'],
     'file_name_out' :
-    'output file name [default: %default]',
+    'output file name [default: %s]' % default_options['file_name_out'],
     'one_cycle' :
     'data contain only one cycle',
     'cycles' :
@@ -349,13 +367,15 @@ help = {
     'mean_val' :
     'count the mean value of moduli of elasticity of all inserted stress-strain curves',
     'cut_strain' :
-    'cut the region of defined strain [default: %default]',
+    'cut the region of defined strain [default: %s]' % default_options['cut_strain'],
     'ultim_val' :
     'get ultimate values of stress and strain',
     'sampling' :
     'the sampling interval',
     'sensitivity' :
-    'the sensitivity of aproximation [default: %default]',
+    'the sensitivity of aproximation [default: %s]' % default_options['sensitivity'],
+    'conf_filename' :
+    'use configuration file',
 }
 
 class Cycler(list):
@@ -366,54 +386,73 @@ class Cycler(list):
     def __getitem__(self, ii):
         return list.__getitem__(self, ii % self.n_max)
 
+
 def main():
         
     parser = OptionParser(usage=usage, version="%prog ")
     parser.add_option("", "--def-ss", type=float, metavar='float',
                       action="store", dest="def_ss",
-                      default='0', help=help['def_ss'])
+                      default=None, help=help['def_ss'])
     parser.add_option("", "--def-ls", metavar='float,float',
                       action="store", dest="def_ls",
-                      default='0,0', help=help['def_ls'])
+                      default=None, help=help['def_ls'])
     parser.add_option("-o", "", metavar='string',
                       action="store", dest="file_name_out",
-                      default='results', help=help['file_name_out'])
+                      default=None, help=help['file_name_out'])
     parser.add_option("", "--legend-fontsize", type=int, metavar='int',
                       action="store", dest="legend_fontsize",
-                      default='10', help=help['legend_fontsize'])
+                      default=None, help=help['legend_fontsize'])
     parser.add_option("", "--one-cycle", 
                       action="store_true", dest="one_cycle",
-                      default=False, help=help['one_cycle'])
+                      default=None, help=help['one_cycle'])
     parser.add_option("", "--cycles", 
                       action="store_true", dest="cycles",
-                      default=False, help=help['cycles'])
+                      default=None, help=help['cycles'])
     parser.add_option("", "--cut-first-cycle", 
                       action="store_true", dest="cut_first_cycle",
-                      default=False, help=help['cut_first_cycle'])
+                      default=None, help=help['cut_first_cycle'])
     parser.add_option("-s", "", 
                       action="store_true", dest="s",
-                      default=False, help=help['s'])
+                      default=None, help=help['s'])
     parser.add_option("", "--mean-val", 
                       action="store_true", dest="mean_val",
-                      default=False, help=help['mean_val'])
+                      default=None, help=help['mean_val'])
     parser.add_option("", "--cut-strain", type=float, metavar='float',
                       action="store", dest="cut_strain",
-                      default='0.0', help=help['cut_strain'])
+                      default=None, help=help['cut_strain'])
     parser.add_option("", "--ultim-val", 
                       action="store_true", dest="ultim_val",
-                      default=False, help=help['ultim_val'])
+                      default=None, help=help['ultim_val'])
     parser.add_option("", "--sampling", type=int, metavar='int',
                       action="store", dest="sampling",
-                      default='0', help=help['sampling'])
+                      default=None, help=help['sampling'])
     parser.add_option("", "--sensitivity", type=float, metavar='float',
                       action="store", dest="sensitivity",
-                      default='0.01', help=help['sensitivity'])
-    options, args = parser.parse_args()
+                      default=None, help=help['sensitivity'])
+    parser.add_option("-c", "--conf", metavar='filename',
+                      action="store", dest="conf_filename",
+                      default=None, help=help['conf_filename'])
+    cmdl_options, args = parser.parse_args()
+
+    can_override = set()
+    for key, default in default_options.iteritems():
+        val = getattr(cmdl_options, key)
+        if val is None:
+            setattr(cmdl_options, key, default)
+        else:
+            can_override.add(key)
+
+    if cmdl_options.conf_filename is not None:
+        config = Config.from_file(cmdl_options.conf_filename)
+    else:
+        conf = {'options' : {'default' : default_options}}
+        config = Config.from_conf(conf)
+    
+    config.override(cmdl_options, can_override)
+    options = Object(name='options', **(config.options['default']))
     
     options.def_ls = [float(r) for r in  options.def_ls.split(',')]
-    print options
-    #raw_input()
-       
+    
     colors = Cycler([(0.0, 0.0, 0.0), 
                      (0.6, 0.0, 1.0),   
                      (1.0, 1.0, 0.0), (1.0, 0.0, 0.8), (0.5, 1.0, 0.5), (0.5, 1.0, 1.0), 
@@ -469,11 +508,20 @@ def main():
     for i_file in range( 0, file_number ):
         filename = args[i_file]
         print 'file:', filename
-        fits, strain, stress = fit_data(filename, options, lengths, areas, 
+        
+        if filename in config.options:
+            specific_options = Object(name='options', **(config.options[filename]))
+            specific_options.def_ls = [float(r) for r in  specific_options.def_ls.split(',')]
+        else:
+            specific_options = options
+        #~ print specific_options
+        #~ pause()
+        
+        fits, strain, stress = fit_data(filename, specific_options, lengths, areas, 
                                                isPlot = isPlot )
-        if not options.cycles:
+        if not specific_options.cycles:
             k0, k1, h_fit, h_data = fit_stress_strain_lines(k_fig, filename, strain, 
-                                                                   stress, options, i_file, 
+                                                                   stress, specific_options, i_file, 
                                                                    color_vector, markers,
                                                                    isPlot = isPlot )
             ks.append( (k0, k1) )
