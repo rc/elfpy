@@ -7,11 +7,23 @@ import numpy as np
 import pylab as p
 from optparse import OptionParser
 import matplotlib.font_manager as fm
-#import pdb; pdb.set_trace()
 from base import Config, Object, pause, output
 
 
 def read_file_info(filename):
+    """
+    Reading of the file.
+
+    Parameters
+    ----------
+    - filename : string
+
+    Returns
+    -------
+    - info : array
+        The values of cross-sectional area and length of the specimens
+        according to key.
+    """
     fd = open(filename, 'r')
     info = {}
     for line in fd:
@@ -23,6 +35,33 @@ def read_file_info(filename):
 
 def split_chunks(strain, time, options, eps_r = 0.01, split = False,
                          append = False):
+    """
+    Automatic separation of individual cycles in the case of cyclic
+    loading. The process is based on the finding of the region between
+    individual cycles where the first time derivative of strain is smaller than
+    value of eps (close enough to zero).
+
+    Parameters
+    ----------
+    - strain : array
+    - time : array
+    - options : list
+    - eps_r : float, default = 0.01
+    - split : bool, default = False
+    - append : bool, default = False
+
+    Returns
+    -------
+    - aii : array
+        The indexes where the first time derivation of strain equal zero
+        (local maxima resp. minima).
+    - chunks : array
+        The sequences of adjacent indexes where the first time
+        derivation of strain equal zero.
+    - ii : array
+        The indexes where the first time derivation of strain equal zero, 
+        in the case of one cycle ii = [0].
+    """
     dstrain = np.diff(strain) / np.diff(time) 
     # dstrain = first time derivation of strain
     eps = eps_r * (dstrain.max() - dstrain.min()) 
@@ -42,7 +81,6 @@ def split_chunks(strain, time, options, eps_r = 0.01, split = False,
         ir = np.where(dd > 1)[0]
         chunks = []
         ic0 = 0
-#        print ii
         for ic in ir:
             if append:
                 chunk = np.r_[ii[ic0:ic+1], ii[ic] + 1]
@@ -51,7 +89,6 @@ def split_chunks(strain, time, options, eps_r = 0.01, split = False,
                 chunk = ii[ic0:ic+1]
                 ic0 = ic + 1
             chunks.append(chunk)
-#        print chunks
         if options.cycles:
             chunks = chunks[:-2]
         if options.cut_first_cycle:
@@ -63,23 +100,43 @@ def split_chunks(strain, time, options, eps_r = 0.01, split = False,
 
 def split_curve(stress, strain, eps_r ,  def_ss=0, def_ls = [0,0], 
                        split = False, append = False):
+
+    """
+    Semi-automatic finding of toe and linear regions (i.e. the region of small
+    deformations and large deformations).
     
+    Parameters
+    ----------
+    - stress : array
+    - strain : array
+    - eps_r : float
+    - def_ss : float, default = 0
+    - def_ls : [float,float], default = [0,0]
+    - split : bool, default = False
+    - append : bool, default = False
+
+    Returns
+    -------
+    - aii : array
+        The indexes where the stress-strain curve is linear.
+    - chunks : array
+        The sequences of adjacent indexes where the stress-strain.
+        curve is linear.
+    - ii : array
+        The indexes of region with small and large deformations.
+    """
     dstress= np.diff(stress, n=1)/ np.diff(strain, n=1)
     ddstress = np.diff(dstress)
     
     eps = eps_r * (ddstress.max() - ddstress.min())
     p1 = np.where(dstress >= 0)[0] 
-    #print 'p1', p1
     p2 = np.ediff1d(p1, to_end = 2 )
-    #print 'p2', p2
     p3 = np.where(p2 > 1)[0]
-    #print 'p3', p3
     if p3[0] == 0 or p3[0] == 1:
         index_value = p1[-1]
     else:
         index_value = p1[p3][0]
     print 'index_value', index_value
-    #bii= np.where( (np.abs(ddstress) < eps)  & (dstress[:-1] >= 0) )[0]
     bii= np.where(np.abs(ddstress) < eps)[0]
     index = np.where (bii < index_value) [0]
     ii = bii[index]
@@ -102,7 +159,6 @@ def split_curve(stress, strain, eps_r ,  def_ss=0, def_ls = [0,0],
         print 'chunks', chunks
         if def_ss == 0 :
             pass
-            #print 'def_ss == 0, chunks',  chunks
         else:
             chunks[0] = np.where(strain <= def_ss)[0]  
             # defined small strain 0-0.15
@@ -116,14 +172,27 @@ def split_curve(stress, strain, eps_r ,  def_ss=0, def_ls = [0,0],
             else:
                 chunks.append(np.where( (strain >= def_ls[0]) 
                 & (strain <= def_ls[1]) )[0])
-        #print 'chunks', chunks
         aii = np.concatenate(chunks)
         return aii, chunks
     else:
         return ii
 
 def get_ultimate_values(strain, stress):
+    """
+    Automatic determination of ultimate values, i.e. ultimate stress and
+    ultimate strain.
+
+    Parameters
+    ----------
+    - stress : array
+    - strain : array
     
+    Returns
+    -------
+    - ultim_stress : float
+    - ultim_strain : float
+    """
+
     dstress= np.diff(stress, n=1)/ np.diff(strain, n=1)
         
     ii = np.where(dstress < 0)[0]
@@ -149,8 +218,29 @@ def get_ultimate_values(strain, stress):
     
     
 def fit_data(filename, options, lengths, areas, isPlot = 2):
-    """isPlot=0 nekresli nic, isPlot=1 vysledek, isPlot=2 vsechny"""
+    """
+    Determination of Young's modulus of elasticity in the descending part of
+    the cycle for individual cycles.
 
+    Parameters
+    ----------
+    - filename : string
+    - options : array
+    - lengths : dict
+    - areas : dict
+    - isPlot : integer, default = 2
+        - isPlot=0 no drawing
+        - isPlot=1 draw only results
+        - isPlot=2 draw all 
+
+    Returns
+    -------
+    - fits : array
+        The values of Young's moduli of elasticity
+    - strain[i0:i1+1] : array
+    - force[i0:i1+1] : array
+    """
+        
     fd = open(filename, 'r')
     tdata = fd.readlines()
     fd.close()
@@ -163,9 +253,7 @@ def fit_data(filename, options, lengths, areas, isPlot = 2):
 
     data = []
     for row in tdata:
-    #    print row
         split_row = row.replace( ',', '.' ).split( ';' )
-    #    print split_row
 
         new = [float( ii ) for ii in split_row]
         data.append(new)
@@ -261,13 +349,39 @@ def fit_data(filename, options, lengths, areas, isPlot = 2):
 
 def fit_stress_strain_lines( fig, filename, strain, stress, options, cc, 
                                     color_vector, markers, isPlot = False ):
+    """
+    Determination of Young's modulus of elasticity in the region of small as
+    well as large deformations (toe and linear region of stress-strain curve).
+
+    Parameters
+    ----------
+    - fig : integer
+    - filename : string
+    - strain : array
+    - stress : array
+    - options : array
+    - cc : integer
+    - color_vector : array
+    - markers : array
+    - isPlot : bool, default = False
+
+    Returns
+    -------
+    - out0[0] : float
+        The value of Young's modulus of elasticity in the region of
+        small deformations
+    - out1[0] : float
+        The value of Young's modulus of elasticity in the region of
+        large deformations
+    - [h0, h1] : [object, object]
+    - h_data : object
+    """
+    
     x, y = strain, stress
         
     ii, chunks = split_curve(stress, strain, eps_r = options.sensitivity, def_ss = options.def_ss, 
                                     def_ls = options.def_ls, split = True, 
                                     append = True)
-    #ii, chunks = splitCurve( stress, strain, epsR = 0.01,  def_ss = 0 , def_ls = [0,0], 
-    #                                split = True, append = True)
     print 'ii, chunks',  ii, chunks
         
     imin0=chunks[0][0]
@@ -302,7 +416,6 @@ def fit_stress_strain_lines( fig, filename, strain, stress, options, cc,
                                  color=color_vector[cc,:3], marker=markers[cc], 
                                  markersize = 3, label=filename)
                 
-    #p.plot( x, y, color_vector[cc,:3], markersize = 3 )
     p.plot(x[[imin0,imin1]], y[[imin0,imin1]], 'gs')
     p.plot(x[[imax0,imax1]], y[[imax0,imax1]], 'rs')
     h0 = p.plot(x[:imin1+1], out0[0] * x[:imin1+1] + out0[1],
@@ -311,19 +424,27 @@ def fit_stress_strain_lines( fig, filename, strain, stress, options, cc,
                  'r', linewidth = 1.5)
     if isPlot:
         p.show()
-
     return out0[0], out1[0], [h0, h1], h_data
 
 def make_legend_text(args, ks):
+    """
+    Make a text of a legend.
+
+    Parameters
+    ----------
+    - args : string
+    - ks : float, float
+    
+    Returns
+    -------
+    - leg : string
+    """
+    
     leg = []
     for ii, arg in enumerate(args):
         print arg
         print ks[ii][0]
         print ks[ii][1] 
-        #~ texts=['%s, $E_0 = %.2f $, $E_1 = %.2f $'
-                 #~ % (args[ii], ks[ii][0], ks[ii][1])]
-        #~ tt = p.getp( axLegend, 'texts' )
-        #~ p.setp( tt[0], 'text', texts[0], 'fontsize', 10 )
         leg.append('%s,\n $E_0 = %.6f $, $E_1 = %.6f $'
                         % (op.splitext(arg)[0], ks[ii][0], ks[ii][1]))
     return leg
@@ -373,7 +494,7 @@ help = {
     'sampling' :
     'the sampling interval',
     'sensitivity' :
-    'the sensitivity of aproximation [default: %s]' % default_options['sensitivity'],
+    'the sensitivity of approximation [default: %s]' % default_options['sensitivity'],
     'conf_filename' :
     'use configuration file',
 }
@@ -388,6 +509,26 @@ class Cycler(list):
 
 
 def main():
+    """
+    The following command line options are available:
+    
+    - def_ss : the final value of strain for small deformations
+    - def_ls : the interval of strain for large deformations 
+    - legend_fontsize : a font size of the legends
+    - file_name_out : output file name
+    - one_cycle : data contain only one cycle
+    - cycles : data contain only cycles
+    - cut_first_cycle : the first cycle will be cut from the evaluation
+    - s : save the pictures with evaluated curves and files with mechanical
+      properties
+    - mean_val : count the mean value of moduli of elasticity of all inserted
+      stress-strain curves
+    - cut_strain : cut the region of defined strain
+    - ultim_val : get ultimate values of stress and strain
+    - sampling : the sampling interval
+    - sensitivity : the sensitivity of approximation 
+    - conf_filename : use configuration file
+    """
         
     parser = OptionParser(usage=usage, version="%prog ")
     parser.add_option("", "--def-ss", type=float, metavar='float',
@@ -474,10 +615,6 @@ def main():
         
     areas = read_file_info(op.join(directory,'cross_sections.txt'))
     lengths = read_file_info(op.join(directory,'init_lengths.txt'))
-    #~ print 'cross-sections (mm^2), initial lengths (mm):' 
-    #~ for key, val in areas.items():
-        #~ print '%-10s : % 8.3f, % 8.3f' % (key, val, lengths[key])
-
     
     isFinal = False
     isLast = False
@@ -514,8 +651,6 @@ def main():
             specific_options.def_ls = [float(r) for r in  specific_options.def_ls.split(',')]
         else:
             specific_options = options
-        #~ print specific_options
-        #~ pause()
         
         fits, strain, stress = fit_data(filename, specific_options, lengths, areas, 
                                                isPlot = isPlot )
@@ -575,11 +710,6 @@ def main():
             print ks_average
             print ks_dev
             if options.s:
-                #~ fd=open(op.splitext( filename_out )[0] + '_moduli.txt', 'w')
-                #~ fd.write(''ks)
-                #~ fd.write(ks_average)
-                #~ fd.write(ks_dev)
-                #~ fd.close()
                 np.savetxt(op.splitext( filename_out )[0] + '_moduli.txt', ks)
     
             fig = p.figure(k_fig)
@@ -587,14 +717,8 @@ def main():
             p.ylabel( 'stress [MPa]' )
             texts = [r'$E_0 = %.2e\ \pm\ %.2e$' % (ks_average[0], ks_dev[0]),
                     r'$E_1 = %.2e\ \pm\ %.2e$' % (ks_average[1], ks_dev[1])]
-            #~ tt = p.getp( axLegend, 'texts' )
-            #~ p.setp( tt[0], 'text', texts[0], 'fontsize', 10 )
-            #~ p.setp( tt[1], 'text', texts[1], 'fontsize', 10 )
             leg = make_legend_text(args, ks)
-            #~ p.legend(h_datas + h_fit, leg + texts, loc = 'upper right', prop=fp)
             fig.legend(h_datas, leg, loc = (0.6, 0.35), prop=fp)
-            #fig.legend(h_datas, leg, loc = (0.6, 0.65), prop=fp)
-            #fig.legend(h_datas, leg, loc = 'upper right', prop=fp)
             p.legend(h_fit, texts, loc = 'lower right', prop=fp)
             
             if options.s:
@@ -610,7 +734,6 @@ def main():
             leg = make_legend_text(args, ks)
             p.xlabel( 'strain' )
             p.ylabel( 'stress [MPa]' )
-            #p.legend(h_datas, leg, loc = 'upper right', prop=fp)
             p.legend(h_datas, leg, loc = 'upper right', prop=fp)
             if options.s:
                 fig_name = op.splitext(filename_out)[0] + '_stress_strain.pdf'
@@ -630,8 +753,6 @@ def main():
             for name, fits in all_fits.iteritems():
                 p.plot(cycle, fits[:to], color=color_vector[ii,:3], marker=markers[ii], markersize = 3, label=op.splitext(name)[0])
                 ii=ii+1
-              #leg.append(op.splitext(name)[0])
-            #p.legend(leg , loc = 'upper right' , prop=fp)
             if options.mean_val:
                 p.plot(cycle, avg_fits[:to], 'ro')
             else:
