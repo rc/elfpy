@@ -507,6 +507,24 @@ class Cycler(list):
     def __getitem__(self, ii):
         return list.__getitem__(self, ii % self.n_max)
 
+def define_plot_attributes():
+    colors = Cycler([(0.0, 0.0, 0.0),
+                     (0.6, 0.0, 1.0),
+                     (1.0, 1.0, 0.0), (1.0, 0.0, 0.8),
+                     (0.5, 1.0, 0.5), (0.5, 1.0, 1.0),
+                     (0.8, 0.0, 0.2), (1.0, 0.0, 0.0),
+                     (0.0, 0.0, 0.4), (0.0, 0.0, 1.0), (0.0, 0.75, 0.0),])
+
+    markers = Cycler(['o', 'v', 's','^', '<',  'D', '>', 'x', 'p', 'h', '+'])
+
+    linestyles = Cycler(['-', '--', '-.', ':'])
+
+    color_vector=[]
+    for ii in range(0,6):
+        color_vector = np.append(color_vector, colors)
+    color_vector = np.reshape(color_vector, (66,3))
+
+    return markers, linestyles, color_vector
 
 def main():
     """
@@ -601,21 +619,9 @@ def main():
     filename_out = options.file_name_out
     
     options.def_ls = [float(r) for r in  options.def_ls.split(',')]
-    
-    colors = Cycler([(0.0, 0.0, 0.0), 
-                     (0.6, 0.0, 1.0),   
-                     (1.0, 1.0, 0.0), (1.0, 0.0, 0.8), (0.5, 1.0, 0.5), (0.5, 1.0, 1.0), 
-                     (0.8, 0.0, 0.2), (1.0, 0.0, 0.0), (0.0, 0.0, 0.4), (0.0, 0.0, 1.0), (0.0, 0.75, 0.0),])
-    
-    markers = Cycler(['o', 'v', 's','^', '<',  'D', '>', 'x', 'p', 'h', '+'])
-    
-    linestyles = Cycler(['-', '--', '-.', ':'])
-    
-    color_vector=[]
-    for ii in range(0,6):
-        color_vector = np.append(color_vector, colors)
-    color_vector = np.reshape(color_vector, (66,3))    
-    
+
+    markers, linestyles, color_vector = define_plot_attributes()
+
     fp = fm.FontProperties()
     fp.set_size(options.legend_fontsize)
     
