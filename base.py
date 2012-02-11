@@ -227,7 +227,7 @@ class Object(object):
 class Config(Object):
 
     @staticmethod
-    def from_file(filename, required=None, optional=None):
+    def from_file(filename, required=None, optional=None, defaults=None):
         conf_mod = import_file(filename)
 
         if 'define' in conf_mod.__dict__:
@@ -235,27 +235,34 @@ class Config(Object):
         else:
             define_dict = conf_mod.__dict__
 
-        return Config.from_conf(define_dict, required, optional)
+        return Config.from_conf(define_dict, required, optional, defaults)
 
     @staticmethod
-    def from_conf(conf, required=None, optional=None):
+    def from_conf(conf, required=None, optional=None, defaults=None):
         if required is None:
             required = []
-            
+
         if optional is None:
             optional = [key for key in conf.keys() if key[:7] == 'options']
-        
+
+        if defaults is None:
+            defaults = {}
+
         valid = {}
         for kw in required:
             try:
                 val = conf[kw]
             except KeyError:
-                raise ValueError('missing keyword "%s" in "%s"!'
-                                 % (kw, filename))
+                raise ValueError('missing keyword "%s"!' % kw)
             valid[kw] = val
 
         for kw in optional:
             valid[kw] = conf.get(kw, None)
+
+        for group_key, group in valid.iteritems():
+            for key, val in defaults.iteritems():
+                if key not in group:
+                    group[key] = val
 
         return Config(**valid)
 
