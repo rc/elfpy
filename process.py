@@ -527,7 +527,7 @@ def main():
     - ultim_val : get ultimate values of stress and strain
     - sampling : the sampling interval
     - sensitivity : the sensitivity of approximation 
-    - conf_filename : use configuration file
+    - conf : use configuration file
     """
         
     parser = OptionParser(usage=usage, version="%prog ")
@@ -575,6 +575,11 @@ def main():
                       default=None, help=help['conf_filename'])
     cmdl_options, args = parser.parse_args()
 
+    file_number = len(args)
+    if file_number == 0:
+        parser.print_help()
+        return
+
     can_override = set()
     for key, default in default_options.iteritems():
         val = getattr(cmdl_options, key)
@@ -584,13 +589,16 @@ def main():
             can_override.add(key)
 
     if cmdl_options.conf_filename is not None:
-        config = Config.from_file(cmdl_options.conf_filename)
+        config = Config.from_file(cmdl_options.conf_filename,
+                                  defaults=default_options)
     else:
         conf = {'options' : {'default' : default_options}}
         config = Config.from_conf(conf)
-    
+
     config.override(cmdl_options, can_override)
     options = Object(name='options', **(config.options['default']))
+
+    filename_out = options.file_name_out
     
     options.def_ls = [float(r) for r in  options.def_ls.split(',')]
     
@@ -620,12 +628,6 @@ def main():
     isLast = False
     isPlot = 0
         
-    file_number = len(args)
-    if file_number == 0:
-        parser.print_help()
-        return
-        
-    filename_out = options.file_name_out
     
     if not options.one_cycle:
         p.figure(1)
