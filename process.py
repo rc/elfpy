@@ -454,7 +454,7 @@ usage = """%prog [options] files file_out"""
 
 default_options = {
     'def_ss' : 0,
-    'def_ls': '0,0',
+    'def_ls': [0, 0],
     'legend_fontsize' : 10,
     'file_name_out' : 'results',
     'one_cycle' : False,
@@ -526,6 +526,12 @@ def define_plot_attributes():
 
     return markers, linestyles, color_vector
 
+def parse_def_ls(option, opt, value, parser):
+    vals = [float(r) for r in  option.split(',')]
+    assert (len(vals) == 2)
+
+    setattr(parser.values, option.dest, vals)
+
 def main():
     """
     The following command line options are available:
@@ -553,8 +559,8 @@ def main():
                       action="store", dest="def_ss",
                       default=None, help=help['def_ss'])
     parser.add_option("", "--def-ls", metavar='float,float',
-                      action="store", dest="def_ls",
-                      default=None, help=help['def_ls'])
+                      action="callback", dest="def_ls",
+                      callback=parse_def_ls, help=help['def_ls'])
     parser.add_option("-o", "", metavar='string',
                       action="store", dest="file_name_out",
                       default=None, help=help['file_name_out'])
@@ -617,8 +623,6 @@ def main():
     options = Object(name='options', **(config.options['default']))
 
     filename_out = options.file_name_out
-    
-    options.def_ls = [float(r) for r in  options.def_ls.split(',')]
 
     markers, linestyles, color_vector = define_plot_attributes()
 
@@ -656,7 +660,6 @@ def main():
         
         if filename in config.options:
             specific_options = Object(name='options', **(config.options[filename]))
-            specific_options.def_ls = [float(r) for r in  specific_options.def_ls.split(',')]
         else:
             specific_options = options
         
