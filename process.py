@@ -527,10 +527,11 @@ def define_plot_attributes():
     return markers, linestyles, color_vector
 
 def parse_def_ls(option, opt, value, parser):
-    vals = [float(r) for r in  option.split(',')]
-    assert (len(vals) == 2)
+    if value is not None:
+        vals = [float(r) for r in value.split(',')]
+        assert (len(vals) == 2)
 
-    setattr(parser.values, option.dest, vals)
+        setattr(parser.values, option.dest, vals)
 
 def main():
     """
@@ -558,7 +559,7 @@ def main():
     parser.add_option("", "--def-ss", type=float, metavar='float',
                       action="store", dest="def_ss",
                       default=None, help=help['def_ss'])
-    parser.add_option("", "--def-ls", metavar='float,float',
+    parser.add_option("", "--def-ls", type='str', metavar='float,float',
                       action="callback", dest="def_ls",
                       callback=parse_def_ls, help=help['def_ls'])
     parser.add_option("-o", "", metavar='string',
