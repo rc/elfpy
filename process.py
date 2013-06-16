@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # c: 28.01.2009; r: 03.07.2009
  
-import sys, re
+import sys, re, glob
 import os.path as op
 import numpy as np
 import pylab as p
@@ -466,6 +466,7 @@ default_options = {
     'ultim_val' : False,
     'sampling' : 0,
     'sensitivity' : 0.01,
+    'mean_plot' : False
 } 
 
 help = {
@@ -495,6 +496,8 @@ help = {
     'the sampling interval',
     'sensitivity' :
     'the sensitivity of approximation [default: %s]' % default_options['sensitivity'],
+    'mean_plot' :
+    'the mean plot of stress-strain curve [default: %s]' % default_options['mean_plot'],
     'conf_filename' :
     'use configuration file',
 }
@@ -553,6 +556,7 @@ def main():
     - sampling : the sampling interval
     - sensitivity : the sensitivity of approximation 
     - conf : use configuration file
+    - mean_plot : plot the mean stress-strain curve
     """
         
     parser = OptionParser(usage=usage, version="%prog ")
@@ -598,7 +602,15 @@ def main():
     parser.add_option("-c", "--conf", metavar='filename',
                       action="store", dest="conf_filename",
                       default=None, help=help['conf_filename'])
+    parser.add_option("", "--mean-plot",
+                      action="store_true", dest="mean_plot",
+                      default=None, help=help['mean_plot'])
     cmdl_options, args = parser.parse_args()
+
+    expanded_args = []
+    for arg in args:
+        expanded_args.extend(glob.glob(arg))
+    args = expanded_args
 
     file_number = len(args)
     if file_number == 0:
@@ -617,7 +629,8 @@ def main():
         config = Config.from_file(cmdl_options.conf_filename,
                                   defaults=default_options)
     else:
-        conf = {'options' : {'default' : default_options}}
+        conf = {'options' : {'default' : default_options},
+                'options_default' : default_options}
         config = Config.from_conf(conf)
 
     config.override(cmdl_options, can_override)
@@ -654,6 +667,9 @@ def main():
     h_datas = []
     ult_strain=[]
     ult_stress=[]
+    strain_all = []
+    stress_all = []
+    strain_size = []
     k_fig = 5
     for i_file in range( 0, file_number ):
         filename = args[i_file]
@@ -666,13 +682,19 @@ def main():
         
         fits, strain, stress = fit_data(filename, specific_options, lengths, areas, 
                                                isPlot = isPlot )
+        if specific_options.mean_plot:
+            strain_size.append(strain.shape[0])
+            strain_all.append(strain)
+            stress_all.append(stress)
+            print 'strain_all', strain_all, strain_size
+
         if not specific_options.cycles:
             k0, k1, h_fit, h_data = fit_stress_strain_lines(k_fig, filename, strain, 
                                                                    stress, specific_options, i_file, 
                                                                    color_vector, markers,
                                                                    isPlot = isPlot )
             ks.append( (k0, k1) )
-            h_datas.append(h_data)
+            h_datas.extend(h_data)
             
             if options.ultim_val:
                 ultim_strain, ultim_stress = get_ultimate_values(strain, stress)
@@ -686,6 +708,13 @@ def main():
         list_fits.append(fits)
     avg_fits /= float(file_number)
     
+    if specific_options.mean_plot:
+        index_length = np.min(strain_size)
+        print index_length
+        strain_mean = np.mean(strain_all, 0)
+        stress_mean = np.mean(stress_all, 0)
+        p.figure(61)
+        p.plot(strain_mean, stress_mean, marker = 'p', color = 'k')
     
     if options.ultim_val:
         ult_strain = np.array(ult_strain, dtype = np.float64)
