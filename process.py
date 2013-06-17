@@ -7,31 +7,8 @@ import numpy as np
 import pylab as p
 from optparse import OptionParser
 import matplotlib.font_manager as fm
-from base import Config, Object, pause, output
-
-
-def read_file_info(filename):
-    """
-    Reading of the file.
-
-    Parameters
-    ----------
-    - filename : string
-
-    Returns
-    -------
-    - info : array
-        The values of cross-sectional area and length of the specimens
-        according to key.
-    """
-    fd = open(filename, 'r')
-    info = {}
-    for line in fd:
-        if line and (line[0] not in ['#', '\n']):
-            key, val = line.split()
-            info[key] = float(val)
-    fd.close()
-    return info
+from elfpy.base import Config, Object, output
+from elfpy.dataio import read_file_info, read_data
 
 def split_chunks(strain, time, options, eps_r = 0.01, split = False,
                          append = False):
@@ -240,30 +217,10 @@ def fit_data(filename, options, lengths, areas, isPlot = 2):
     - strain[i0:i1+1] : array
     - force[i0:i1+1] : array
     """
-
-    fd = open(filename, 'r')
-    tdata = fd.readlines()
-    fd.close()
-    header = '\n'.join(tdata[:2])
-    print header
-
-    tdata = tdata[2:]
-
-    print 'length:', len(tdata)
-
-    data = []
-    for row in tdata:
-        split_row = row.replace( ',', '.' ).split( ';' )
-
-        new = [float( ii ) for ii in split_row]
-        data.append(new)
-
-
-    data = np.array(data, dtype = np.float64)
-    print 'shape:', data.shape
-
+    data = read_data(filename, sep=' ')
     force, strain, time = data[:,0], data[:,1], data[:,2]
-    name = op.splitext(filename)[0]
+
+    name = op.splitext(op.basename(filename))[0]
     lenght0 = lengths[name]
     print lenght0
 
