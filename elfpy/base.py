@@ -138,6 +138,17 @@ class Object(object):
         aux.pop('traits')
         return aux
 
+    def get(self, key, default=None, msg_if_none=None):
+        """
+        A dict-like get().
+        """
+        out = getattr(self, key, default)
+
+        if (out is None) and (msg_if_none is not None):
+            raise ValueError(msg_if_none)
+
+        return out
+
     def __str__(self):
         return self._format()
 
