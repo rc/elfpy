@@ -1,4 +1,72 @@
+import os.path as op
 import numpy as np
+
+from elfpy.base import Object
+from elfpy.filters import savitzky_golay
+
+class Data(Object):
+    """
+    Measured data.
+    """
+
+    @classmethod
+    def from_file(cls, filename, sep=' '):
+        raw_data = read_data(filename, sep=sep)
+
+        name = op.splitext(op.basename(filename))[0]
+        obj = cls(name, raw_data)
+        return obj
+
+    def __init__(self, name, raw_data):
+        raw_force = raw_data[:, 0]
+        raw_displ = raw_data[:, 1]
+        time = raw_data[:, 2]
+        filtered = [False, False]
+
+        Object.__init__(self, name=name, raw_data=raw_data,
+                        raw_force=raw_force, raw_displ=raw_displ,
+                        time=time, filtered=filtered,
+                        raw_stress=None, raw_strain=None,
+                        _stress=None, _strain=None)
+
+    def set_initial_values(self, length0=None, area0=None,
+                           lengths=None, areas=None):
+        if length0 is None:
+            length0 = lengths[self.name]
+
+        if area0 is None:
+            area0 = areas[self.name]
+
+        self.length0 = length0
+        self.area0 = area0
+
+        self.raw_strain = self.raw_displ / self.length0
+        self.raw_stress = self.raw_force / self.area0
+
+        self._strain = None
+        self._stress = None
+
+    @property
+    def strain(self):
+        if self._strain is None:
+            self._strain = self.raw_strain
+            self.filtered[0] = False
+        return self._strain
+
+    @property
+    def stress(self):
+        if self._stress is None:
+            self._stress = self.raw_stress
+            self.filtered[1] = False
+        return self._stress
+
+    def filter_strain(self, window_size, order):
+        self.filtered[0] = True
+        self._strain = savitzky_golay(self.raw_strain, window_size, order)
+
+    def filter_stress(self, window_size, order):
+        self.filtered[1] = True
+        self._stress = savitzky_golay(self.raw_stress, window_size, order)
 
 def read_file_info(filename):
     """
