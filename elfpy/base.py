@@ -17,7 +17,7 @@ def assert_(condition):
     if not condition:
         raise ValueError('assertion failed!')
 
-def pause( msg = None ):
+def pause(msg=None):
     """
     Prints the line number and waits for a keypress.
 
@@ -37,7 +37,7 @@ def pause( msg = None ):
                                     ff.co_name, f.f_lineno)
     spause()
 
-def spause( msg = None ):
+def spause(msg=None):
     """
     Waits for a keypress.
 
@@ -65,7 +65,7 @@ def dict_from_keys_init(keys, seq_class=None):
 
     if seq_class is None:
         return {}.fromkeys(keys)
-    
+
     out = {}
     for key in keys:
         out[key] = seq_class()
@@ -80,7 +80,7 @@ class Object(object):
     def objects_from_dict(*args, **kwargs):
 
         kws = copy.copy(kwargs)
-        
+
         level = kws.pop('level', 0)
         flag = kws.pop('flag')
 
@@ -137,7 +137,7 @@ class Object(object):
         aux = copy.copy(self.__dict__)
         aux.pop('traits')
         return aux
-            
+
     def __str__(self):
         return self._format()
 
@@ -161,13 +161,13 @@ class Object(object):
                 msg = [_dashes, self.__repr__(), _dashes]
         else:
             msg = []
-            
+
         keys = self.traits.keys()
         order = np.argsort(keys)
         for ii in order:
             key = keys[ii]
             if (key == 'name') and (mode == 'report'): continue
-            
+
             val = self.traits[key]
 
             if isinstance(val, tuple):
@@ -189,7 +189,7 @@ class Object(object):
                     attr = '<not set>'
 
             if (attr == '<not set>') and (mode == 'set_only'): continue
-                
+
             if issubclass(attr.__class__, Object):
                 sattr = repr(attr)
                 attr = '%s: %s' % (key, sattr)
@@ -211,7 +211,7 @@ class Object(object):
 
         self._fd = fd
         self._filename = filename
-        
+
         return fd
 
     def fd_close(self):
@@ -271,16 +271,16 @@ class Config(Object):
             for key, val in group.iteritems():
                 if key in can_override:
                     group[key] = getattr(options, key)
-        
+
 class Output(Object):
     """Factory class providing output (print) functions.
 
     Example:
 
-    >>> output = Output( 'sfepy:' )
-    >>> output( 1, 2, 3, 'hello' )
+    >>> output = Output('sfepy:')
+    >>> output(1, 2, 3, 'hello')
     >>> output.prefix = 'my_cool_app:'
-    >>> output( 1, 2, 3, 'hello' )
+    >>> output(1, 2, 3, 'hello')
     """
     traits = {
         'prefix' : None,
@@ -294,7 +294,7 @@ class Output(Object):
         self.prefix = prefix
 
         self.set_output(filename, combined)
-        
+
     def __call__(self, *argc, **argv):
         self.output_function(*argc, **argv)
 
@@ -310,42 +310,42 @@ class Output(Object):
                 append - append to an existing file instead of overwriting it
         """
         self.level = 0
-        def output_screen( *argc, **argv ):
-            format = '%s' + ' %s' * (len( argc ) - 1)
+        def output_screen(*argc, **argv):
+            format = '%s' + ' %s' * (len(argc) - 1)
             msg =  format % argc
 
-            if msg.startswith( '...' ):
+            if msg.startswith('...'):
                 self.level -= 1
 
             print self._prefix + ('  ' * self.level) + msg
 
-            if msg.endswith( '...' ):
+            if msg.endswith('...'):
                 self.level += 1
 
-        def output_file( *argc, **argv ):
-            format = '%s' + ' %s' * (len( argc ) - 1)
+        def output_file(*argc, **argv):
+            format = '%s' + ' %s' * (len(argc) - 1)
             msg =  format % argc
 
-            if msg.startswith( '...' ):
+            if msg.startswith('...'):
                 self.level -= 1
 
-            fd = open( filename, 'a' )
+            fd = open(filename, 'a')
             print >>fd, self._prefix + ('  ' * self.level) + msg
             fd.close()
 
-            if msg.endswith( '...' ):
+            if msg.endswith('...'):
                 self.level += 1
 
-        def output_combined( *argc, **argv ):
-            output_screen( *argc, **argv )
-            output_file( *argc, **argv )
-    
+        def output_combined(*argc, **argv):
+            output_screen(*argc, **argv)
+            output_file(*argc, **argv)
+
         if filename is None:
             self.output_function = output_screen
 
         else:
             if not append:
-                fd = open( filename, 'w' )
+                fd = open(filename, 'w')
                 fd.close()
 
             if combined:
@@ -356,14 +356,14 @@ class Output(Object):
     def get_output_function(self):
         return self.output_function
 
-    def set_output_prefix( self, prefix ):
-        assert_( isinstance( prefix, str ) )
-        if len( prefix ) > 0:
+    def set_output_prefix(self, prefix):
+        assert_(isinstance(prefix, str))
+        if len(prefix) > 0:
             prefix += ' '
         self._prefix = prefix
-        
-    def get_output_prefix( self ):
+
+    def get_output_prefix(self):
         return self._prefix[:-1]
-    prefix = property( get_output_prefix, set_output_prefix )
-    
+    prefix = property(get_output_prefix, set_output_prefix)
+
 output = Output('elfpy:')
