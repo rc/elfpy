@@ -1,6 +1,85 @@
 """
 Data filters.
 """
+import inspect
+import numpy as np
+
+from elfpy.base import output
+
+def parse_filter_pipeline(commands):
+    """
+    Parse commands string defining a pipeline.
+    """
+    if commands is None: return []
+
+    cmds = commands.split(':')
+
+    get = globals().get
+
+    output('parsing filters...')
+
+    filters = []
+    for ic, cmd in enumerate(cmds):
+        output('cmd %d: %s' % (ic, cmd))
+
+        aux = cmd.split(',')
+        filter_name = aux[0]
+        filter_args = aux[1:]
+
+        fun = get(filter_name)
+        if fun is None:
+            raise ValueError('filter "%s" does not exist!' % filter_name)
+        (args, varargs, keywords, defaults) = inspect.getargspec(fun)
+
+        if defaults is None:
+            defaults = []
+
+        if len(defaults) < len(filter_args):
+            raise ValueError('filter "%s" takes only %d arguments!'
+                             % (filter_name, len(defaults)))
+
+        # Process args after data.
+        kwargs = {}
+        for ia, arg in enumerate(args[1:]):
+            if ia < len(filter_args):
+                farg = filter_args[ia]
+                try:
+                    kwargs[arg] = type(defaults[ia])(farg)
+
+                except ValueError:
+                    raise ValueError('argument "%s" cannot be converted to %s!'
+                                     % (arg, type(defaults[ia])))
+
+            else:
+                kwargs[arg] = defaults[ia]
+
+        output('using arguments:', kwargs)
+
+        filters.append((fun, kwargs))
+
+    output('...done')
+
+    return filters
+
+def smooth_strain(data, window_size=35, order=3):
+    data.filter_strain(window_size, order)
+
+    return data
+
+def smooth_stress(data, window_size=35, order=3):
+    data.filter_stress(window_size, order)
+
+    return data
+
+def reset_strain(data):
+    data._strain = None
+
+    return data
+
+def reset_stress(data):
+    data._stress = None
+
+    return data
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
