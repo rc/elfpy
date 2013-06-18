@@ -6,7 +6,7 @@ import numpy as np
 
 from elfpy.base import output
 
-def parse_filter_pipeline(commands):
+def parse_filter_pipeline(commands, get=None, name='filters'):
     """
     Parse commands string defining a pipeline.
     """
@@ -14,9 +14,9 @@ def parse_filter_pipeline(commands):
 
     cmds = commands.split(':')
 
-    get = globals().get
+    if get is None: get = globals().get
 
-    output('parsing filters...')
+    output('parsing %s...' % name)
 
     filters = []
     for ic, cmd in enumerate(cmds):
