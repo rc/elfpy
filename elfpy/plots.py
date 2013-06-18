@@ -51,3 +51,45 @@ def make_legend_text(args, ks):
         leg.append('%s,\n $E_0 = %.6f $, $E_1 = %.6f $'
                    % (op.splitext(arg)[0], ks[ii][0], ks[ii][1]))
     return leg
+
+def plot_strain_time(data, fig_num=1, ax=False):
+    fig = plt.figure(fig_num)
+
+    if ax is None:
+        fig.clf()
+        ax = fig.add_subplot(111)
+        plt.title(data.name)
+
+    ax.plot(data.time, data.strain)
+    ax.set_xlabel('time [s]')
+    ax.set_ylabel('strain [1]')
+
+    return ax
+
+def plot_stress_time(data, fig_num=1, ax=False):
+    fig = plt.figure(fig_num)
+
+    if ax is None:
+        fig.clf()
+        ax = fig.add_subplot(111)
+        plt.title(data.name)
+
+    ax.plot(data.time, data.stress)
+    ax.set_xlabel('time [s]')
+    ax.set_ylabel('stress [MPa]')
+
+    return ax
+
+def plot_stress_strain(data, fig_num=1, ax=False):
+    fig = plt.figure(fig_num)
+
+    if ax is None:
+        fig.clf()
+        ax = fig.add_subplot(111)
+        plt.title(data.name)
+
+    ax.plot(data.strain, data.stress)
+    ax.set_xlabel('strain [1]')
+    ax.set_ylabel('stress [MPa]')
+
+    return ax
