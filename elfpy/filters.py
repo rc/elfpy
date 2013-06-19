@@ -81,6 +81,49 @@ def reset_stress(data):
 
     return data
 
+def detect_strain_cycles(data):
+    """
+    Automatic separation of individual cycles in the case of cyclic
+    displacement-induced loading. The process is based on the finding the
+    indices where the first time derivative of strain changes its sign.
+
+    Notes
+    -----
+    Sets `cycles` attribute of `data`. Then, for example,
+    `data.strain[data.cycles[ii]]` gives the strain in the ii-th cycle.
+    """
+    # First time derivative of strain.
+    dstrain = np.diff(data.strain) / np.diff(data.time)
+
+    # Sign change.
+    sign = np.sign(dstrain)
+    ii = np.where(np.abs(np.ediff1d(sign, to_begin=2, to_end=2)) == 2)[0]
+
+    data.cycles = [slice(ii[ir], ii[ir+1]) for ir in xrange(len(ii) - 1)]
+
+    return data
+
+def select_cycle(data, cycle=-1):
+    """
+    Select current cycle.
+
+    Notes
+    -----
+    Calls automatically :func:`detect_strain_cycles()` if needed. Sets `irange`
+    attribute of `data`.
+    """
+    if not len(data.cycles):
+        data = detect_strain_cycles(data)
+
+    try:
+        data.irange = data.cycles[cycle]
+
+    except IndexError:
+        output('cycle %d is not present, using the last one!' % cycle)
+        data.irange = data.cycles[-1]
+
+    return data
+
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
     The Savitzky-Golay filter removes high frequency noise from data.
