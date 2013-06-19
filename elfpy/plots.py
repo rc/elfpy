@@ -120,3 +120,12 @@ def plot_raw_stress_strain(data, fig_num=1, ax=False, label=''):
                 'strain [1]', 'stress [MPa]',
                 label=label, title='raw stress-strain')
     return ax
+
+def plot_cycles_time(data, fig_num=1, ax=0):
+    ax = _get_ax(fig_num, ax)
+    ymin, ymax = ax.axis()[2:]
+
+    for ii in data.cycles:
+        plt.vlines(data.full_time[ii.start], ymin, ymax)
+
+    return ax
