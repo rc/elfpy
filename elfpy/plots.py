@@ -78,42 +78,42 @@ def _get_label(data, label):
 
     return label
 
-def plot_strain_time(data, fig_num=1, ax=False, label=''):
+def plot_strain_time(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
     _plot_curve(ax, data.time, data.strain, 'time [s]', 'strain [1]',
                 label=label, title='strain-time')
     return ax
 
-def plot_stress_time(data, fig_num=1, ax=False, label=''):
+def plot_stress_time(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
     _plot_curve(ax, data.time, data.stress, 'time [s]', 'stress [MPa]',
                 label=label, title='stress-time')
     return ax
 
-def plot_stress_strain(data, fig_num=1, ax=False, label=''):
+def plot_stress_strain(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
     _plot_curve(ax, data.strain, data.stress, 'strain [1]', 'stress [MPa]',
                 label=label, title='stress-strain')
     return ax
 
-def plot_raw_strain_time(data, fig_num=1, ax=False, label=''):
+def plot_raw_strain_time(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
     _plot_curve(ax, data.time, data.raw_strain, 'time [s]', 'strain [1]',
                 label=label, title='raw strain-time')
     return ax
 
-def plot_raw_stress_time(data, fig_num=1, ax=False, label=''):
+def plot_raw_stress_time(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
     _plot_curve(ax, data.time, data.raw_stress, 'time [s]', 'stress [MPa]',
                 label=label, title='raw stress-time')
     return ax
 
-def plot_raw_stress_strain(data, fig_num=1, ax=False, label=''):
+def plot_raw_stress_strain(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
     _plot_curve(ax, data.raw_strain, data.raw_stress,
