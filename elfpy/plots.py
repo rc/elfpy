@@ -29,6 +29,8 @@ def define_plot_attributes():
 
     return markers, linestyles, color_vector
 
+markers, linestyles, color_vector = define_plot_attributes()
+
 def make_legend_text(args, ks):
     """
     Make a text of a legend.
@@ -52,44 +54,69 @@ def make_legend_text(args, ks):
                    % (op.splitext(arg)[0], ks[ii][0], ks[ii][1]))
     return leg
 
-def plot_strain_time(data, fig_num=1, ax=False):
+def _plot_curve(ax, dx, dy, xlabel, ylabel, label='', title=None):
+    il = len(ax.lines)
+    ax.plot(dx, dy, label=label, color=color_vector[il,:3], marker=markers[il])
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    if title is not None:
+        plt.title(title)
+
+def _get_ax(fig_num, ax):
     fig = plt.figure(fig_num)
 
     if ax is None:
         fig.clf()
         ax = fig.add_subplot(111)
-        plt.title(data.name)
-
-    ax.plot(data.time, data.strain)
-    ax.set_xlabel('time [s]')
-    ax.set_ylabel('strain [1]')
 
     return ax
 
-def plot_stress_time(data, fig_num=1, ax=False):
-    fig = plt.figure(fig_num)
+def _get_label(data, label):
+    if label:
+        label = ': '.join((data.name, label))
 
-    if ax is None:
-        fig.clf()
-        ax = fig.add_subplot(111)
-        plt.title(data.name)
+    return label
 
-    ax.plot(data.time, data.stress)
-    ax.set_xlabel('time [s]')
-    ax.set_ylabel('stress [MPa]')
-
+def plot_strain_time(data, fig_num=1, ax=False, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+    _plot_curve(ax, data.time, data.strain, 'time [s]', 'strain [1]',
+                label=label, title='strain-time')
     return ax
 
-def plot_stress_strain(data, fig_num=1, ax=False):
-    fig = plt.figure(fig_num)
+def plot_stress_time(data, fig_num=1, ax=False, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+    _plot_curve(ax, data.time, data.stress, 'time [s]', 'stress [MPa]',
+                label=label, title='stress-time')
+    return ax
 
-    if ax is None:
-        fig.clf()
-        ax = fig.add_subplot(111)
-        plt.title(data.name)
+def plot_stress_strain(data, fig_num=1, ax=False, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+    _plot_curve(ax, data.strain, data.stress, 'strain [1]', 'stress [MPa]',
+                label=label, title='stress-strain')
+    return ax
 
-    ax.plot(data.strain, data.stress)
-    ax.set_xlabel('strain [1]')
-    ax.set_ylabel('stress [MPa]')
+def plot_raw_strain_time(data, fig_num=1, ax=False, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+    _plot_curve(ax, data.time, data.raw_strain, 'time [s]', 'strain [1]',
+                label=label, title='raw strain-time')
+    return ax
 
+def plot_raw_stress_time(data, fig_num=1, ax=False, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+    _plot_curve(ax, data.time, data.raw_stress, 'time [s]', 'stress [MPa]',
+                label=label, title='raw stress-time')
+    return ax
+
+def plot_raw_stress_strain(data, fig_num=1, ax=False, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+    _plot_curve(ax, data.raw_strain, data.raw_stress,
+                'strain [1]', 'stress [MPa]',
+                label=label, title='raw stress-strain')
     return ax

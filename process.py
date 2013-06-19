@@ -70,13 +70,18 @@ def run_pipeline(filters, plots, datas):
         shared_ax = kwargs.pop('ax', False)
         ax = ax if shared_ax else None
 
+        is_legend = False
         for ir, data in enumerate(datas):
             output('plotting: %s ...' % data.name)
 
+            is_legend = is_legend or kwargs.get('label', '')
             ax = fun(data, ax=ax, **kwargs)
 
             output('...done')
         output('...done')
+
+        if is_legend:
+            plt.legend()
 
     plt.show()
 
