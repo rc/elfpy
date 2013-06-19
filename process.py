@@ -18,12 +18,52 @@ from elfpy.filters import parse_filter_pipeline
 from elfpy.dataio import read_file_info, Data
 import elfpy.plots as pl
 
-usage = '%prog [options] filenames\n' + __doc__.rstrip()
+def get_commands(options):
+    """
+    Get filter and plot commands from options.
+    """
+    if options.command_file:
+        fd = open(options.command_file, 'r')
+        cmds = fd.readlines()
+        fd.close()
 
-_help = {
-    'filters' : 'filters that should be aplied to data files',
-    'plots' : 'plots that should be created for data files',
-}
+        filter_cmds = []
+        plot_cmds = []
+        append = filter_cmds.append
+        for cmd in cmds:
+            cmd = cmd.strip()
+
+            if cmd.startswith('-'):
+                append = plot_cmds.append
+                continue
+
+            elif cmd.startswith('#') or (len(cmd) == 0):
+                continue
+
+            append(cmd)
+
+        filter_cmds = ':'.join(filter_cmds)
+        plot_cmds = ':'.join(plot_cmds)
+
+    else:
+        filter_cmds = None
+        plot_cmds = None
+
+    if filter_cmds:
+        if options.filters:
+            filter_cmds = filter_cmds + ':' + options.filters
+
+    else:
+        filter_cmds = options.filters
+
+    if plot_cmds:
+        if options.plots:
+            plot_cmds = plot_cmds + ':' + options.plots
+
+    else:
+        plot_cmds = options.plots
+
+    return filter_cmds, plot_cmds
 
 def read_all_data(filenames):
     directory = op.split(__file__)[0]
@@ -85,6 +125,18 @@ def run_pipeline(filters, plots, datas):
 
     plt.show()
 
+usage = '%prog [options] filenames\n' + __doc__.rstrip()
+
+_help = {
+    'filters' : 'filters that should be applied to data files',
+    'plots' : 'plots that should be created for data files',
+    'command_file' : 'file with filter commands followed by plot commands.'
+    ' The two groups has to be separated by a line with one or several "-"'
+    ' characters. The filter commands are pre-pended to commands passed'
+    ' using --filters. The plot commands are pre-pended to commands passed'
+    ' using --plots.',
+}
+
 def main():
     parser = OptionParser(usage=usage, version="%prog ")
     parser.add_option('-f', '--filters',
@@ -95,6 +147,10 @@ def main():
                       metavar='plot1,fig_num,arg1,...,argN:plot2,...',
                       action='store', type='string', dest='plots',
                       default=None, help=_help['plots'])
+    parser.add_option('-c', '--command-file',
+                      metavar='filename',
+                      action='store', type='string', dest='command_file',
+                      default=None, help=_help['command_file'])
     cmdl_options, args = parser.parse_args()
 
     expanded_args = []
@@ -106,9 +162,10 @@ def main():
         parser.print_help()
         return
 
-    filters = parse_filter_pipeline(cmdl_options.filters)
-    plots = parse_filter_pipeline(cmdl_options.plots,
-                                  get=vars(pl).get, name='plots')
+    filter_cmds, plot_cmds = get_commands(cmdl_options)
+
+    filters = parse_filter_pipeline(filter_cmds)
+    plots = parse_filter_pipeline(plot_cmds, get=vars(pl).get, name='plots')
     datas = read_all_data(args)
 
     run_pipeline(filters, plots, datas)
