@@ -25,9 +25,10 @@ class Data(Object):
 
         Object.__init__(self, name=name, raw_data=raw_data,
                         raw_force=raw_force, raw_displ=raw_displ,
-                        time=time, filtered=filtered,
-                        raw_stress=None, raw_strain=None,
-                        _stress=None, _strain=None)
+                        full_time=time, filtered=filtered,
+                        _raw_stress=None, _raw_strain=None,
+                        _stress=None, _strain=None,
+                        cycles=[], irange=slice(None))
 
     def set_initial_values(self, length0=None, area0=None,
                            lengths=None, areas=None):
@@ -40,25 +41,37 @@ class Data(Object):
         self.length0 = length0
         self.area0 = area0
 
-        self.raw_strain = self.raw_displ / self.length0
-        self.raw_stress = self.raw_force / self.area0
+        self._raw_strain = self.raw_displ / self.length0
+        self._raw_stress = self.raw_force / self.area0
 
         self._strain = None
         self._stress = None
+
+    @property
+    def time(self):
+        return self.full_time[self.irange]
+
+    @property
+    def raw_strain(self):
+        return self._raw_strain[self.irange]
+
+    @property
+    def raw_stress(self):
+        return self._raw_stress[self.irange]
 
     @property
     def strain(self):
         if self._strain is None:
             self._strain = self.raw_strain
             self.filtered[0] = False
-        return self._strain
+        return self._strain[self.irange]
 
     @property
     def stress(self):
         if self._stress is None:
             self._stress = self.raw_stress
             self.filtered[1] = False
-        return self._stress
+        return self._stress[self.irange]
 
     def filter_strain(self, window_size, order):
         self.filtered[0] = True
