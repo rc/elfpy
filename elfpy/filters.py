@@ -42,7 +42,7 @@ def parse_filter_pipeline(commands, get=None, name='filters'):
         kwargs = {}
         for ia, arg in enumerate(args[1:]):
             if ia < len(filter_args):
-                farg = filter_args[ia]
+                farg = filter_args[ia].strip()
                 try:
                     kwargs[arg] = type(defaults[ia])(farg)
 
