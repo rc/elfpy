@@ -130,6 +130,33 @@ def plot_cycles_time(data, fig_num=1, ax=0):
 
     return ax
 
+def mark_ultimate_strain(data, fig_num=1, ax=0, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+
+    plt.plot(data.time[data.iult], data.ultimate_strain, 'k*',
+             ms=20, label=label)
+
+    return ax
+
+def mark_ultimate_stress(data, fig_num=1, ax=0, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+
+    plt.plot(data.time[data.iult], data.ultimate_stress, 'k*',
+             ms=20, label=label)
+
+    return ax
+
+def mark_ultimate_values(data, fig_num=1, ax=0, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+
+    plt.plot(data.ultimate_strain, data.ultimate_stress, 'k*',
+             ms=20, label=label)
+
+    return ax
+
 def show(datas, **kwargs):
     plt.show()
 
