@@ -149,6 +149,18 @@ class Object(object):
 
         return out
 
+    def get_not_none(self, key, default):
+        val = self.get(key, default)
+        if val is None:
+            if default is None:
+                msg = 'both attribute "%s" and default value are None!' % key
+                raise ValueError(msg)
+
+            else:
+                val = default
+
+        return val
+
     def __str__(self):
         return self._format()
 
