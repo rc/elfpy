@@ -120,7 +120,10 @@ def select_cycle(data, cycle=-1):
 
     except IndexError:
         output('cycle %d is not present, using the last one!' % cycle)
+        data.icycle = -1
         data.irange = data.cycles[-1]
+
+    data.icycle = cycle
 
     return data
 

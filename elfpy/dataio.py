@@ -28,7 +28,7 @@ class Data(Object):
                         full_time=time, filtered=filtered,
                         _raw_stress=None, _raw_strain=None,
                         _stress=None, _strain=None,
-                        cycles=[], irange=slice(None))
+                        icycle=None, cycles=[], irange=slice(None))
 
     def set_initial_values(self, length0=None, area0=None,
                            lengths=None, areas=None):
