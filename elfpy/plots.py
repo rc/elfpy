@@ -31,6 +31,10 @@ def define_plot_attributes():
 
 markers, linestyles, color_vector = define_plot_attributes()
 
+plot_options = {
+    'linewidth' : 1,
+}
+
 data_options = {
     'sampling' : 1,
 }
@@ -60,7 +64,8 @@ def make_legend_text(args, ks):
 
 def _plot_curve(ax, dx, dy, xlabel, ylabel, label='', title=None):
     il = len(ax.lines)
-    ax.plot(dx, dy, label=label, color=color_vector[il,:3], marker=markers[il])
+    ax.plot(dx, dy, label=label, color=color_vector[il,:3], marker=markers[il],
+            **plot_options)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
