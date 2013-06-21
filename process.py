@@ -143,7 +143,7 @@ def run_pipeline(filters, plots, saves, datas):
         aux = ', '.join(['%s=%s' % kw for kw in kwargs.iteritems()])
         output('executing: %s(%s) ...' % (fun.__name__, aux))
 
-        fun(**kwargs)
+        fun(datas, **kwargs)
 
         output('...done')
 
@@ -199,7 +199,7 @@ def main():
     plots = parse_filter_pipeline(plot_cmds, get=vars(pl).get, name='plots')
     vv = vars(dataio)
     vv.update(vars(pl))
-    saves = parse_filter_pipeline(save_cmds, get=vv.get, name='saves', ikw=0)
+    saves = parse_filter_pipeline(save_cmds, get=vv.get, name='saves')
     if cmdl_options.show:
         saves = [(pl.show, {})] + saves
 

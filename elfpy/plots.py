@@ -130,10 +130,10 @@ def plot_cycles_time(data, fig_num=1, ax=0):
 
     return ax
 
-def show(**kwargs):
+def show(datas, **kwargs):
     plt.show()
 
-def save_figure(fig_num=1, suffix='', filename=''):
+def save_figure(datas, fig_num=1, suffix='', filename=''):
     fig = plt.figure(fig_num)
     if not filename:
         if not suffix:
