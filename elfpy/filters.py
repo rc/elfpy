@@ -127,6 +127,37 @@ def select_cycle(data, cycle=-1):
 
     return data
 
+def get_ultimate_values(data, eps=0.1):
+    """
+    Get ultimate stress and strain.
+    """
+    stress = data.stress
+    dstress = np.diff(stress, n=1)/ np.diff(data.strain, n=1)
+
+    ii = np.where(dstress < 0)[0]
+    if len(ii) == 0:
+        output('warning: stress does not decrease')
+        iult = stress.shape[0] - 1
+
+    else:
+        iult = np.where(stress[ii] > (eps * stress.max()))[0]
+        if len(iult) == 0:
+            iult = ii[0]
+            output('warning: ultimate stress is less then %f*max stress' % eps)
+
+        else:
+            iult = ii[iult[0]]
+
+    data.iult = iult
+    output('index of ultimate strength:', iult)
+
+    data.ultimate_strain = data.strain[iult]
+    data.ultimate_stress = stress[iult]
+    output('ultim. strain, ultim. stress:',
+           data.ultimate_strain, data.ultimate_stress)
+
+    return data
+
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
     The Savitzky-Golay filter removes high frequency noise from data.

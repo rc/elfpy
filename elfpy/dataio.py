@@ -28,6 +28,7 @@ class Data(Object):
                         full_time=time, filtered=filtered,
                         _raw_stress=None, _raw_strain=None,
                         _stress=None, _strain=None,
+                        iult=None, ultimate_stress=None, ultimate_strain=None,
                         icycle=None, cycles=[], irange=slice(None))
 
     def set_initial_values(self, length0=None, area0=None,
@@ -129,3 +130,19 @@ def read_data(filename, sep=' '):
     data = np.array(data, dtype=np.float64)
     print 'shape:', data.shape
     return data
+
+def save_ultimate_values(datas, filename='', mode='w'):
+    if not filename:
+        filename = 'ultimate_values.txt'
+
+    fd = open(filename, mode)
+    fd.write('# index, data name, cycle, ultimate strain, ultimate stress\n')
+    for ii, data in enumerate(datas):
+        if data.ultimate_strain is None:
+            raise ValueError('use "get_ultimate_values" filter!')
+
+        ics = 'na' if data.icycle is None else '%d' % data.icycle
+        fd.write('%d, %s, %s, ' % (ii, data.name, ics))
+        fd.write('%.5e, %.5e\n' % (data.ultimate_strain, data.ultimate_stress))
+
+    fd.close()
