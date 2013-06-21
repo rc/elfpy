@@ -129,3 +129,15 @@ def plot_cycles_time(data, fig_num=1, ax=0):
         plt.vlines(data.full_time[ii.start], ymin, ymax)
 
     return ax
+
+def show(**kwargs):
+    plt.show()
+
+def save_figure(fig_num=1, suffix='png', filename=''):
+    fig = plt.figure(fig_num)
+    if not filename:
+        ax = fig.gca()
+        title = ax.title.get_text()
+        filename = title.replace(' ', '_') + '.' + suffix
+
+    fig.savefig(filename)

@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 from elfpy.base import output
 from elfpy.filters import parse_filter_pipeline
 from elfpy.dataio import read_file_info, Data
+import elfpy.dataio as dataio
 import elfpy.plots as pl
 
 def get_commands(options):
@@ -29,12 +30,16 @@ def get_commands(options):
 
         filter_cmds = []
         plot_cmds = []
+        save_cmds = []
+        ii = 0
+        appends = [plot_cmds.append, save_cmds.append]
         append = filter_cmds.append
         for cmd in cmds:
             cmd = cmd.strip()
 
             if cmd.startswith('-'):
-                append = plot_cmds.append
+                append = appends[ii]
+                ii += 1
                 continue
 
             elif cmd.startswith('#') or (len(cmd) == 0):
@@ -44,10 +49,12 @@ def get_commands(options):
 
         filter_cmds = ':'.join(filter_cmds)
         plot_cmds = ':'.join(plot_cmds)
+        save_cmds = ':'.join(save_cmds)
 
     else:
         filter_cmds = None
         plot_cmds = None
+        save_cmds = None
 
     if filter_cmds:
         if options.filters:
@@ -63,7 +70,14 @@ def get_commands(options):
     else:
         plot_cmds = options.plots
 
-    return filter_cmds, plot_cmds
+    if save_cmds:
+        if options.saves:
+            save_cmds = save_cmds + ':' + options.saves
+
+    else:
+        save_cmds = options.saves
+
+    return filter_cmds, plot_cmds, save_cmds
 
 def read_all_data(filenames):
     directory = op.split(__file__)[0]
@@ -78,7 +92,7 @@ def read_all_data(filenames):
 
     return datas
 
-def run_pipeline(filters, plots, datas):
+def run_pipeline(filters, plots, saves, datas):
     """
     Apply filters and then plots to datas.
     """
@@ -123,13 +137,23 @@ def run_pipeline(filters, plots, datas):
         if is_legend:
             plt.legend()
 
-    plt.show()
+    for ii, save in enumerate(saves):
+        fun, kwargs = save
+
+        aux = ', '.join(['%s=%s' % kw for kw in kwargs.iteritems()])
+        output('executing: %s(%s) ...' % (fun.__name__, aux))
+
+        fun(**kwargs)
+
+        output('...done')
 
 usage = '%prog [options] filenames\n' + __doc__.rstrip()
 
 _help = {
     'filters' : 'filters that should be applied to data files',
     'plots' : 'plots that should be created for data files',
+    'saves' : 'commands to save results into files',
+    'no_show' : 'do not show figures',
     'command_file' : 'file with filter commands followed by plot commands.'
     ' The two groups has to be separated by a line with one or several "-"'
     ' characters. The filter commands are pre-pended to commands passed'
@@ -147,6 +171,13 @@ def main():
                       metavar='plot1,fig_num,arg1,...,argN:plot2,...',
                       action='store', type='string', dest='plots',
                       default=None, help=_help['plots'])
+    parser.add_option('-s', '--saves',
+                      metavar='save1,arg1,...,argN:save2,...',
+                      action='store', type='string', dest='saves',
+                      default=None, help=_help['saves'])
+    parser.add_option('-n', '--no-show',
+                      action='store_false', dest='show',
+                      default=True, help=_help['no_show'])
     parser.add_option('-c', '--command-file',
                       metavar='filename',
                       action='store', type='string', dest='command_file',
@@ -162,13 +193,19 @@ def main():
         parser.print_help()
         return
 
-    filter_cmds, plot_cmds = get_commands(cmdl_options)
+    filter_cmds, plot_cmds, save_cmds = get_commands(cmdl_options)
 
     filters = parse_filter_pipeline(filter_cmds)
     plots = parse_filter_pipeline(plot_cmds, get=vars(pl).get, name='plots')
+    vv = vars(dataio)
+    vv.update(vars(pl))
+    saves = parse_filter_pipeline(save_cmds, get=vv.get, name='saves', ikw=0)
+    if cmdl_options.show:
+        saves = [(pl.show, {})] + saves
+
     datas = read_all_data(args)
 
-    run_pipeline(filters, plots, datas)
+    run_pipeline(filters, plots, saves, datas)
 
 if __name__ == '__main__':
     main()
