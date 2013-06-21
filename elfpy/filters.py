@@ -6,7 +6,7 @@ import numpy as np
 
 from elfpy.base import output
 
-def parse_filter_pipeline(commands, get=None, name='filters'):
+def parse_filter_pipeline(commands, get=None, name='filters', ikw=1):
     """
     Parse commands string defining a pipeline.
     """
@@ -40,7 +40,7 @@ def parse_filter_pipeline(commands, get=None, name='filters'):
 
         # Process args after data.
         kwargs = {}
-        for ia, arg in enumerate(args[1:]):
+        for ia, arg in enumerate(args[ikw:]):
             if ia < len(filter_args):
                 farg = filter_args[ia].strip()
                 try:
