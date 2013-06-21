@@ -133,11 +133,18 @@ def plot_cycles_time(data, fig_num=1, ax=0):
 def show(**kwargs):
     plt.show()
 
-def save_figure(fig_num=1, suffix='png', filename=''):
+def save_figure(fig_num=1, suffix='', filename=''):
     fig = plt.figure(fig_num)
     if not filename:
+        if not suffix:
+            suffix = 'png'
+
         ax = fig.gca()
         title = ax.title.get_text()
         filename = title.replace(' ', '_') + '.' + suffix
+
+    else:
+        if suffix:
+            filename += '.' + suffix
 
     fig.savefig(filename)
