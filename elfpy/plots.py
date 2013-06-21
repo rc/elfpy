@@ -31,6 +31,10 @@ def define_plot_attributes():
 
 markers, linestyles, color_vector = define_plot_attributes()
 
+data_options = {
+    'sampling' : 1,
+}
+
 def make_legend_text(args, ks):
     """
     Make a text of a legend.
@@ -78,46 +82,63 @@ def _get_label(data, label):
 
     return label
 
+def _get_data(dx, dy):
+    ic = data_options['sampling']
+
+    length = dx.shape[0]
+    num = float(length) / ic
+    ii = np.linspace(0, length - 1, np.ceil(num)).astype(np.int)
+
+    return dx[ii], dy[ii]
+
+def set_sampling(data, sampling=1, **kwargs):
+    data_options['sampling'] = sampling
+
 def plot_strain_time(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
-    _plot_curve(ax, data.time, data.strain, 'time [s]', 'strain [1]',
+    dx, dy = _get_data(data.time, data.strain)
+    _plot_curve(ax, dx, dy, 'time [s]', 'strain [1]',
                 label=label, title='strain-time')
     return ax
 
 def plot_stress_time(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
-    _plot_curve(ax, data.time, data.stress, 'time [s]', 'stress [MPa]',
+    dx, dy = _get_data(data.time, data.stress)
+    _plot_curve(ax, dx, dy, 'time [s]', 'stress [MPa]',
                 label=label, title='stress-time')
     return ax
 
 def plot_stress_strain(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
-    _plot_curve(ax, data.strain, data.stress, 'strain [1]', 'stress [MPa]',
+    dx, dy = _get_data(data.strain, data.stress)
+    _plot_curve(ax, dx, dy, 'strain [1]', 'stress [MPa]',
                 label=label, title='stress-strain')
     return ax
 
 def plot_raw_strain_time(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
-    _plot_curve(ax, data.time, data.raw_strain, 'time [s]', 'strain [1]',
+    dx, dy = _get_data(data.time, data.raw_strain)
+    _plot_curve(ax, dx, dy, 'time [s]', 'strain [1]',
                 label=label, title='raw strain-time')
     return ax
 
 def plot_raw_stress_time(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
-    _plot_curve(ax, data.time, data.raw_stress, 'time [s]', 'stress [MPa]',
+    dx, dy = _get_data(data.time, data.raw_stress)
+    _plot_curve(ax, dx, dy, 'time [s]', 'stress [MPa]',
                 label=label, title='raw stress-time')
     return ax
 
 def plot_raw_stress_strain(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
-    _plot_curve(ax, data.raw_strain, data.raw_stress,
-                'strain [1]', 'stress [MPa]',
+    dx, dy = _get_data(data.raw_strain, data.raw_stress)
+    _plot_curve(ax, dx, dy, 'strain [1]', 'stress [MPa]',
                 label=label, title='raw stress-strain')
     return ax
 
