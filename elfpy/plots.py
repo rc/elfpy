@@ -183,6 +183,24 @@ def mark_ultimate_values(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+def mark_stress_regions(data, fig_num=1, ax=0, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+
+    for region in data.stress_regions:
+        ii = [region.start, region.stop]
+        plt.plot(data.strain[ii], data.stress[ii], 'k-', label=label, lw=5)
+
+    region = data.irange_small
+    ii = [region.start, region.stop]
+    plt.plot(data.strain[ii], data.stress[ii], 'b-', label=label, lw=5)
+
+    region = data.irange_large
+    ii = [region.start, region.stop]
+    plt.plot(data.strain[ii], data.stress[ii], 'r-', label=label, lw=5)
+
+    return ax
+
 def show(datas, **kwargs):
     plt.show()
 
