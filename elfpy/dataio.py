@@ -29,7 +29,9 @@ class Data(Object):
                         _raw_stress=None, _raw_strain=None,
                         _stress=None, _strain=None,
                         iult=None, ultimate_stress=None, ultimate_strain=None,
-                        icycle=None, cycles=[], irange=slice(None))
+                        icycle=None, cycles=[], irange=slice(None),
+                        stress_regions=None,
+                        irange_small=None, irange_large=None)
 
     def set_initial_values(self, length0=None, area0=None,
                            lengths=None, areas=None):

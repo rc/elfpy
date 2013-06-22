@@ -158,6 +158,77 @@ def get_ultimate_values(data, eps=0.1):
 
     return data
 
+def detect_stress_regions(data, eps_r=0.01, run=10):
+    """
+    Detect linear-like regions of stress-strain curve (i.e. the regions of
+    small and large deformations). The first and last regions are identified
+    with small and large deformation linear regions.
+    """
+    stress = data.stress
+    window_size = max(int(0.001 * stress.shape[0]), 35)
+
+    ds = savitzky_golay(stress, window_size, 3, 1)
+    de = savitzky_golay(data.strain, window_size, 3, 1)
+    dstress = ds / de
+    ddstress = savitzky_golay(dstress, window_size, 3, 1)
+
+    p1 = np.where(dstress >= 0)[0]
+    p2 = np.ediff1d(p1, to_end=2)
+    p3 = np.where(p2 > 1)[0]
+    if p3[0] == 0 or p3[0] == 1:
+        index_value = p1[-1]
+    else:
+        index_value = p1[p3][0]
+    output('index_value:', index_value) # Usually equal to data.iult.
+
+    ddstress = ddstress[:index_value]
+    addstress = np.abs(ddstress)
+    eps = eps_r * addstress.max()
+    ii = np.where(addstress < eps)[0]
+    idd = np.ediff1d(ii)
+    ir = np.where(idd > 1)[0]
+
+    run_len = int((run * index_value) / 100.)
+
+    regions = []
+    ic0 = 0
+    for ic in ir:
+        region = slice(ii[ic0], ii[ic] + 1)
+        ic0 = ic + 1
+        if (region.stop - region.start) >= run_len:
+            regions.append(region)
+
+    output('%d region(s)' % len(regions))
+    data.stress_regions = regions
+
+    if len(regions):
+        data.irange_small = regions[0]
+        data.irange_large = regions[-1]
+
+    return data
+
+def set_stress_regions(data, def_s0=-1.0, def_s1=-1.0,
+                       def_l0=-1.0, def_l1=-1.0):
+    """
+    Set the regions of small and large deformations.
+
+    If positive, [def_s0, def_s1] strain range is set as small deformations,
+    [def_l0, def_l1] as large deformations.
+    """
+    if (def_s0 >= 0.0) and (def_s1 >= 0):
+        assert(def_s0 < def_s1)
+        i0 = np.where(data.strain >= def_s0)[0][0]
+        i1 = np.where(data.strain <= def_s1)[0][-1]
+        data.irange_small = slice(i0, i1)
+
+    if (def_l0 >= 0.0) and (def_l1 >= 0):
+        assert(def_l0 < def_l1)
+        i0 = np.where(data.strain >= def_l0)[0][0]
+        i1 = np.where(data.strain <= def_l1)[0][-1]
+        data.irange_large = slice(i0, i1)
+
+    return data
+
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
     The Savitzky-Golay filter removes high frequency noise from data.
