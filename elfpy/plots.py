@@ -85,7 +85,11 @@ def _get_ax(fig_num, ax):
 
 def _get_label(data, label):
     if label:
-        label = ': '.join((data.name, label))
+        if label == '%':
+            label = data.name
+
+        else:
+            label = ': '.join((data.name, label))
 
     return label
 
