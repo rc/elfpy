@@ -132,6 +132,10 @@ def run_pipeline(filters, plots, saves, datas):
             ax = fun(data, ax=ax, **kwargs)
 
             output('...done')
+            if (ax is None) and (len(datas) > 1):
+                output('non-plot command, skipping other data')
+                break
+
         output('...done')
 
         if is_legend:
