@@ -104,6 +104,9 @@ def set_sampling(data, sampling=1, **kwargs):
 def use_markers(data, use=1, **kwargs):
     data_options['use_markers'] = use
 
+def set_plot_option(data, option='', value=0.0, **kwargs):
+    plot_options[option] = value
+
 def plot_strain_time(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
