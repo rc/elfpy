@@ -65,14 +65,14 @@ class Data(Object):
     @property
     def strain(self):
         if self._strain is None:
-            self._strain = self.raw_strain
+            self._strain = self._raw_strain
             self.filtered[0] = False
         return self._strain[self.irange]
 
     @property
     def stress(self):
         if self._stress is None:
-            self._stress = self.raw_stress
+            self._stress = self._raw_stress
             self.filtered[1] = False
         return self._stress[self.irange]
 
