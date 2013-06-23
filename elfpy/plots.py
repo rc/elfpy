@@ -37,6 +37,7 @@ plot_options = {
 
 data_options = {
     'sampling' : 1,
+    'use_markers' : 1,
 }
 
 def make_legend_text(args, ks):
@@ -64,7 +65,8 @@ def make_legend_text(args, ks):
 
 def _plot_curve(ax, dx, dy, xlabel, ylabel, label='', title=None):
     il = len(ax.lines)
-    ax.plot(dx, dy, label=label, color=color_vector[il,:3], marker=markers[il],
+    marker = markers[il] if data_options['use_markers'] else None
+    ax.plot(dx, dy, label=label, color=color_vector[il,:3], marker=marker,
             **plot_options)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
@@ -98,6 +100,9 @@ def _get_data(dx, dy):
 
 def set_sampling(data, sampling=1, **kwargs):
     data_options['sampling'] = sampling
+
+def use_markers(data, use=1, **kwargs):
+    data_options['use_markers'] = use
 
 def plot_strain_time(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
