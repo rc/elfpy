@@ -214,6 +214,24 @@ def mark_stress_regions(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+def _plot_fit_line(data, region, coefs, color, linewidth, label):
+    if coefs is None: return
+
+    ii = [region.start, region.stop]
+    strain = data.strain[ii]
+    stress = coefs[0] * strain + coefs[1]
+    plt.plot(strain, stress, color, linewidth=linewidth, label=label)
+
+def mark_fits(data, fig_num=1, ax=0, label=''):
+    ax = _get_ax(fig_num, ax)
+
+    _plot_fit_line(data, data.irange_small, data.linear_fit_small, 'b-', 5,
+                   'small strain')
+    _plot_fit_line(data, data.irange_large, data.linear_fit_large, 'r-', 5,
+                   'large strain')
+
+    return ax
+
 def show(datas, **kwargs):
     plt.show()
 
