@@ -31,7 +31,8 @@ class Data(Object):
                         iult=None, ultimate_stress=None, ultimate_strain=None,
                         icycle=None, cycles=[], irange=slice(None),
                         stress_regions=None,
-                        irange_small=None, irange_large=None)
+                        irange_small=None, irange_large=None,
+                        linear_fit_small=None, linear_fit_large=None)
 
     def set_initial_values(self, length0=None, area0=None,
                            lengths=None, areas=None):
@@ -146,5 +147,43 @@ def save_ultimate_values(datas, filename='', mode='w'):
         ics = 'na' if data.icycle is None else '%d' % data.icycle
         fd.write('%d, %s, %s, ' % (ii, data.name, ics))
         fd.write('%.5e, %.5e\n' % (data.ultimate_strain, data.ultimate_stress))
+
+    fd.close()
+
+def save_fits(datas, filename='', mode='w'):
+    if not filename:
+        filename = 'linear_fits.txt'
+
+    fd = open(filename, mode)
+    fd.write('# index, data name, cycle, strain region1 start, stop,'
+             ' stiffness, ...\n')
+    for ii, data in enumerate(datas):
+        ok = 2
+        if data.linear_fit_small is None:
+            ok -= 1
+
+        if data.linear_fit_large is None:
+            ok -= 1
+
+        if not ok:
+            raise ValueError('use "fit_stress_strain" filter!')
+
+        ics = 'na' if data.icycle is None else '%d' % data.icycle
+        fd.write('%d, %s, %s, ' % (ii, data.name, ics))
+        if data.linear_fit_small is not None:
+            strain = data.strain[data.irange_small]
+            fd.write('%.5e, %.5e, %.5e'
+                     % (strain[0], strain[-1], data.linear_fit_small[0]))
+
+            if ok == 1:
+                fd.write('\n')
+
+        if ok == 2:
+            fd.write(', ')
+
+        if data.linear_fit_large is not None:
+            strain = data.strain[data.irange_large]
+            fd.write('%.5e, %.5e, %.5e\n'
+                     % (strain[0], strain[-1], data.linear_fit_large[0]))
 
     fd.close()

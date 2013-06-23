@@ -229,6 +229,29 @@ def set_stress_regions(data, def_s0=-1.0, def_s1=-1.0,
 
     return data
 
+def _fit_stress_strain(stress, strain):
+    return np.polyfit(strain, stress, 1)
+
+def fit_stress_strain(data, small=1, large=1):
+    """
+    Determine Young's modulus of elasticity in the selected regions.
+    """
+    if small:
+        ii = data.irange_small
+        if ii is None:
+            raise ValueError('small strain range not set!')
+        out = _fit_stress_strain(data.stress[ii], data.strain[ii])
+        data.linear_fit_small = out
+
+    if large:
+        ii = data.irange_large
+        if ii is None:
+            raise ValueError('large strain range not set!')
+        out = _fit_stress_strain(data.stress[ii], data.strain[ii])
+        data.linear_fit_large = out
+
+    return data
+
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
     The Savitzky-Golay filter removes high frequency noise from data.
