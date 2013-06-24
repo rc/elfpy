@@ -1,11 +1,39 @@
 #!/usr/bin/env python
 """
-Analyze results of mechanical measurements.
+Analyze results of mechanical measurements by applying filters, plots, and save
+commands to data files.
+
+The commands can be specified using the command line options, and using a
+command file. As the command line commands are applied after the command file
+commands, they can be used for overriding.
+
+All filters pass around a data object, that is modified in place.
+All plot commands accept a matplotlib figure number and and axes object.
+All save commands accept a list of all the data objects.
+
+After parsing of all commands, the following algorithm is used:
+
+1. Read all data files into a list of data objects. Each data object
+   corresponds to a single data file.
+2. Apply each filter to each data object.
+3. Apply each plot command to each data object.
+4. Apply each save command to the list of all data objects.
 
 Examples
 --------
 
-$ python process.py data.txt -f 'smooth_strain:smooth_stress:detect_strain_cycles:reset_strain:reset_stress' -p 'plot_stress_strain,1:plot_stress_time,2:plot_strain_time,2,1'
+Let us assume that the measurements are in text files in the data/ directory.
+
+- Plot filtered and raw stress and strain:
+
+$ python process.py data/*.txt -f 'smooth_strain : smooth_stress' -p 'use_markers, 0 : plot_strain_time, 1, 0, filtered : plot_raw_strain_time, 1, 1, raw : plot_stress_time, 2, 0, filtered : plot_raw_stress_time, 2, 1, raw'
+
+- Detect ultimate stress and strain in the last strain load cycle, plot it on a
+  stress-strain curve and save it to a text file:
+
+$ python process.py data/*.txt -f 'smooth_strain : smooth_stress : select_cycle, -1 : get_ultimate_values' -p 'use_markers, 0 : plot_stress_strain, 1, 0, stress-strain : mark_ultimate_values, 1, 1' -s 'save_ultimate_values : save_figure, 1' -n
+
+  Always use -n option, when saving figures.
 """
 from optparse import OptionParser
 import glob
