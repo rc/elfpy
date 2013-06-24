@@ -23,7 +23,7 @@ def parse_filter_pipeline(commands, get=None, name='filters', ikw=1):
         output('cmd %d: %s' % (ic, cmd))
 
         aux = cmd.split(',')
-        filter_name = aux[0]
+        filter_name = aux[0].strip()
         filter_args = aux[1:]
 
         fun = get(filter_name)
