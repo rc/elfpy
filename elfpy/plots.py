@@ -2,6 +2,7 @@ import os.path as op
 import numpy as np
 import matplotlib.pyplot as plt
 
+from elfpy.filters import _parse_list_of_ints
 from elfpy.dataio import _get_filename
 
 class Cycler(list):
@@ -188,24 +189,38 @@ def plot_raw_stress_strain(data, fig_num=1, ax=0, label=''):
                 label=label, title='raw stress-strain')
     return ax
 
-def plot_cycles_colors(data, fig_num=1, ax=0, label='',
-                       odd=1, even=1, cut_last=0):
-    ax = _get_ax(fig_num, ax)
-    label = _get_label(data, label)
-
-    if not (odd or even): return ax
-
-    ics = data.get_cycle_indices(odd, even, cut_last)
-
+def _plot_cycles_colors(data, ax, label, ics):
     colors = make_colors(len(ics))
+
+    nc = len(data.cycles)
     for ii, ic in enumerate(ics):
+        ic = ic if ic >= 0 else nc + ic
         irange = data.cycles[ic]
         dx, dy = _get_data(data.strain[irange], data.stress[irange])
         lab = label + '_%d' % ic
         _plot_curve(ax, dx, dy, 'strain [1]', 'stress [MPa]', label=lab,
                     color=colors[ii], title='stress-strain cycles', iline=ii)
 
+def plot_cycles_colors(data, fig_num=1, ax=0, label='', odd=1, even=1,
+                       cut_last=0):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+
+    if not (odd or even): return ax
+
+    ics = data.get_cycle_indices(odd, even, cut_last)
+    _plot_cycles_colors(data, ax, label, ics)
+
     return ax
+
+def plot_cycles_colors_list(data, fig_num=1, ax=0, label='', ics=[0]):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+
+    _plot_cycles_colors(data, ax, label, ics)
+
+    return ax
+plot_cycles_colors_list._elfpy_arg_parsers = {'ics' : _parse_list_of_ints}
 
 def plot_cycles_time(data, fig_num=1, ax=0):
     ax = _get_ax(fig_num, ax)
