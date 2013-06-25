@@ -33,6 +33,31 @@ def define_plot_attributes():
 
 markers, linestyles, color_vector = define_plot_attributes()
 
+def make_colors(num):
+    """
+    Make `num` continuously changing rainbow-like RGB colors.
+    """
+    def g(n):
+        """
+        Map sine [-1.0 .. 1.0] => color byte [0 .. 255].
+        """
+        return 255 * (n + 1) / 2.0
+
+    def f(start, stop, num):
+
+        interval = (stop - start) / num
+
+        for n in range(num):
+            coefficient = start + interval * n
+            yield g(np.sin(coefficient * np.pi))
+
+    red = f(0.5, 1.5, num)
+    green = f(1.5, 3.5, num)
+    blue = f(1.5, 2.5, num)
+
+    rgbs = [('#%02x%02x%02x' % rgb) for rgb in zip(red, green, blue)]
+    return rgbs
+
 plot_options = {
     'linewidth' : 1,
 }
