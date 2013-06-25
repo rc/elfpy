@@ -90,11 +90,13 @@ def make_legend_text(args, ks):
                    % (op.splitext(arg)[0], ks[ii][0], ks[ii][1]))
     return leg
 
-def _plot_curve(ax, dx, dy, xlabel, ylabel, label='', title=None):
-    il = len(ax.lines)
+def _plot_curve(ax, dx, dy, xlabel, ylabel, label='',
+                color=None, title=None, iline=None):
+    il = len(ax.lines) if iline is None else iline
+    color = color_vector[il, :3] if color is None else color
     marker = markers[il] if data_options['use_markers'] else None
-    ax.plot(dx, dy, label=label, color=color_vector[il,:3], marker=marker,
-            **plot_options)
+
+    ax.plot(dx, dy, label=label, color=color, marker=marker, **plot_options)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
 
@@ -184,6 +186,28 @@ def plot_raw_stress_strain(data, fig_num=1, ax=0, label=''):
     dx, dy = _get_data(data.raw_strain, data.raw_stress)
     _plot_curve(ax, dx, dy, 'strain [1]', 'stress [MPa]',
                 label=label, title='raw stress-strain')
+    return ax
+
+def plot_cycles_colors(data, fig_num=1, ax=0, label='',
+                       odd=1, even=1, cut_last=0):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+
+    if not (odd or even): return ax
+
+    cycles = data.cycles[:-1] if cut_last else data.cycles
+    if not odd:
+        cycles = cycles[1::2]
+    elif not even:
+        cycles = cycles[0::2]
+
+    colors = make_colors(len(cycles))
+    for ii, ic in enumerate(cycles):
+        dx, dy = _get_data(data.strain[ic], data.stress[ic])
+        lab = label + '_%d' % ii
+        _plot_curve(ax, dx, dy, 'strain [1]', 'stress [MPa]', label=lab,
+                    color=colors[ii], title='stress-strain cycles', iline=ii)
+
     return ax
 
 def plot_cycles_time(data, fig_num=1, ax=0):
