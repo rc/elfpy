@@ -147,20 +147,25 @@ def run_pipeline(filters, plots, saves, datas):
         aux = ', '.join(['%s=%s' % kw for kw in kwargs.iteritems()])
         output('applying: %s(%s) ...' % (fun.__name__, aux))
 
-        shared_ax = kwargs.pop('ax', False)
-        ax = ax if shared_ax else None
+        shared_ax = kwargs.pop('ax', None)
+        if shared_ax is not None: # True plot command.
+            ax = ax if shared_ax else None
 
         is_legend = False
         for ir, data in enumerate(datas):
             output('plotting: %s ...' % data.name)
 
             is_legend = is_legend or kwargs.get('label', '')
-            ax = fun(data, ax=ax, **kwargs)
+            _ax = fun(data, ax=ax, **kwargs)
 
             output('...done')
-            if (ax is None) and (len(datas) > 1):
-                output('non-plot command, skipping other data')
-                break
+            if _ax is None:
+                if len(datas) > 1:
+                    output('non-plot command, skipping other data')
+                    break
+
+            else:
+                ax = _ax
 
         output('...done')
 
