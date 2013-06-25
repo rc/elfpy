@@ -252,6 +252,23 @@ def fit_stress_strain(data, small=1, large=1):
 
     return data
 
+def fit_stress_strain_cycles(data, odd=1, even=1, cut_last=1):
+    """
+    Determine overall Young's modulus of elasticity in the selected cycles.
+    """
+    if not len(data.cycles):
+        data = detect_strain_cycles(data)
+
+    ics = data.get_cycle_indices(odd, even, cut_last)
+
+    data.linear_fits = []
+    for ii, ic in enumerate(ics):
+        irange = data.cycles[ic]
+        out = _fit_stress_strain(data.stress[irange], data.strain[irange])
+        data.linear_fits.append((ic, out))
+
+    return data
+
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
     The Savitzky-Golay filter removes high frequency noise from data.

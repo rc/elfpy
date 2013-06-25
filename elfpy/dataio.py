@@ -30,6 +30,7 @@ class Data(Object):
                         _stress=None, _strain=None,
                         iult=None, ultimate_stress=None, ultimate_strain=None,
                         icycle=None, cycles=[], irange=slice(None),
+                        linear_fits=None,
                         stress_regions=None,
                         irange_small=None, irange_large=None,
                         linear_fit_small=None, linear_fit_large=None)
@@ -212,5 +213,27 @@ def save_fits(datas, filename='', mode='w'):
             strain = data.strain[data.irange_large]
             fd.write('%.5e, %.5e, %.5e\n'
                      % (strain[0], strain[-1], data.linear_fit_large[0]))
+
+    fd.close()
+
+def save_cycles_fits(datas, filename='', mode='w'):
+    filename = _get_filename(datas, filename, 'linear_cycles_fits', 'txt')
+
+    fd = open(filename, mode)
+    fd.write('# index, data name, cycle1, strain region1 start, stop,'
+             ' stiffness1, cycle2, ...\n')
+    for ii, data in enumerate(datas):
+        if data.linear_fits is None:
+            raise ValueError('use "fit_stress_strain_cycles" filter!')
+
+        fd.write('%d, %s, ' % (ii, data.name))
+
+        for iii, (ic, fit) in enumerate(data.linear_fits):
+            strain = data.strain[data.cycles[ic]]
+            fd.write('%d, %.5e, %.5e, %.5e'
+                     % (ic, strain[0], strain[-1], fit[0]))
+
+            cc = '\n' if (iii + 1) == len(data.linear_fits) else ', '
+            fd.write(cc)
 
     fd.close()
