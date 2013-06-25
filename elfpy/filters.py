@@ -40,15 +40,27 @@ def parse_filter_pipeline(commands, get=None, name='filters', ikw=1):
 
         # Process args after data.
         kwargs = {}
+        arg_parser = getattr(fun, '_elfpy_arg_parsers', {})
         for ia, arg in enumerate(args[ikw:]):
             if ia < len(filter_args):
                 farg = filter_args[ia].strip()
-                try:
-                    kwargs[arg] = type(defaults[ia])(farg)
+                if arg in arg_parser:
+                    parser = arg_parser[arg]
+                    try:
+                        kwargs[arg] = parser(farg)
 
-                except ValueError:
-                    raise ValueError('argument "%s" cannot be converted to %s!'
-                                     % (arg, type(defaults[ia])))
+                    except ValueError:
+                        msg = 'argument "%s" cannot be converted to %s(%s)!'
+                        raise ValueError(msg % (arg, type(defaults[ia]),
+                                                type(defaults[ia][0])))
+
+                else:
+                    try:
+                        kwargs[arg] = type(defaults[ia])(farg)
+
+                    except ValueError:
+                        msg = 'argument "%s" cannot be converted to %s!'
+                        raise ValueError(msg % (arg, type(defaults[ia])))
 
             else:
                 kwargs[arg] = defaults[ia]
