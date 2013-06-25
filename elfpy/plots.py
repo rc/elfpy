@@ -2,6 +2,8 @@ import os.path as op
 import numpy as np
 import matplotlib.pyplot as plt
 
+from elfpy.dataio import _get_filename
+
 class Cycler(list):
     def __init__(self, sequence):
         list.__init__(self, sequence)
@@ -237,16 +239,15 @@ def show(datas, **kwargs):
 
 def save_figure(datas, fig_num=1, suffix='', filename=''):
     fig = plt.figure(fig_num)
-    if not filename:
-        if not suffix:
-            suffix = 'png'
 
+    if not filename:
         ax = fig.gca()
         title = ax.title.get_text()
-        filename = title.replace(' ', '_') + '.' + suffix
+        filename = title.replace(' ', '_')
 
-    else:
-        if suffix:
-            filename += '.' + suffix
+    if not suffix:
+        suffix = 'png'
+
+    filename = _get_filename(datas, filename, '', suffix)
 
     fig.savefig(filename)

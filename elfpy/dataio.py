@@ -134,9 +134,22 @@ def read_data(filename, sep=' '):
     print 'shape:', data.shape
     return data
 
-def save_ultimate_values(datas, filename='', mode='w'):
+def _get_filename(datas, filename, default, suffix):
     if not filename:
-        filename = 'ultimate_values.txt'
+        filename = default + '.' + suffix
+
+    else:
+        if r'%n' in filename:
+            prefix = '_'.join([data.name for data in datas])
+            filename = filename.replace('%n', prefix)
+
+        if '.' not in filename:
+            filename = filename + '.' + suffix
+
+    return filename
+
+def save_ultimate_values(datas, filename='', mode='w'):
+    filename = _get_filename(datas, filename, 'ultimate_values', 'txt')
 
     fd = open(filename, mode)
     fd.write('# index, data name, cycle, ultimate strain, ultimate stress\n')
@@ -151,8 +164,7 @@ def save_ultimate_values(datas, filename='', mode='w'):
     fd.close()
 
 def save_fits(datas, filename='', mode='w'):
-    if not filename:
-        filename = 'linear_fits.txt'
+    filename = _get_filename(datas, filename, 'linear_fits', 'txt')
 
     fd = open(filename, mode)
     fd.write('# index, data name, cycle, strain region1 start, stop,'
