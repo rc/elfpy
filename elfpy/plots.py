@@ -195,16 +195,13 @@ def plot_cycles_colors(data, fig_num=1, ax=0, label='',
 
     if not (odd or even): return ax
 
-    cycles = data.cycles[:-1] if cut_last else data.cycles
-    if not odd:
-        cycles = cycles[1::2]
-    elif not even:
-        cycles = cycles[0::2]
+    ics = data.get_cycle_indices(odd, even, cut_last)
 
-    colors = make_colors(len(cycles))
-    for ii, ic in enumerate(cycles):
-        dx, dy = _get_data(data.strain[ic], data.stress[ic])
-        lab = label + '_%d' % ii
+    colors = make_colors(len(ics))
+    for ii, ic in enumerate(ics):
+        irange = data.cycles[ic]
+        dx, dy = _get_data(data.strain[irange], data.stress[irange])
+        lab = label + '_%d' % ic
         _plot_curve(ax, dx, dy, 'strain [1]', 'stress [MPa]', label=lab,
                     color=colors[ii], title='stress-strain cycles', iline=ii)
 

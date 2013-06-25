@@ -85,6 +85,21 @@ class Data(Object):
         self.filtered[1] = True
         self._stress = savitzky_golay(self.raw_stress, window_size, order)
 
+    def get_cycle_indices(self, odd=True, even=True, cut_last=False):
+        if not (odd or even): return []
+
+        iis = np.arange(len(self.cycles), dtype=np.int)
+
+        iis = iis[:-1] if cut_last else iis
+
+        if not odd:
+            iis = iis[1::2]
+
+        elif not even:
+            iis = iis[0::2]
+
+        return iis
+
 def read_file_info(filename):
     """
     Reading of the file.
