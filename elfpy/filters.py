@@ -285,14 +285,14 @@ def fit_stress_strain_cycles(data, odd=1, even=1, cut_last=1):
     ics = data.get_cycle_indices(odd, even, cut_last)
     return _fit_stress_strain_cycles(data, ics)
 
+def _parse_list_of_ints(arg_str):
+    return [int(ii.strip()) for ii in arg_str[1:-1].split(';')]
+
 def fit_stress_strain_cycles_list(data, ics=[0]):
     if not len(data.cycles):
         data = detect_strain_cycles(data)
 
     return _fit_stress_strain_cycles(data, ics)
-
-def _parse_list_of_ints(arg_str):
-    return [int(ii.strip()) for ii in arg_str[1:-1].split(';')]
 fit_stress_strain_cycles_list._elfpy_arg_parsers = {'ics' : _parse_list_of_ints}
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
