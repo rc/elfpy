@@ -290,6 +290,20 @@ def mark_cycles_fits(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+def plot_fits_stiffness(data, fig_num=1, ax=0, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+
+    dx, dy = [], []
+    for ii, (ic, fit) in enumerate(data.linear_fits):
+        dx.append(ic)
+        dy.append(fit[0])
+
+    _plot_curve(ax, dx, dy, 'cycle [1]', 'stiffness [MPa]',
+                label=label, title='stiffness per cycle')
+
+    return ax
+
 def show(datas, **kwargs):
     plt.show()
 
