@@ -264,6 +264,17 @@ def fit_stress_strain(data, small=1, large=1):
 
     return data
 
+def _fit_stress_strain_cycles(data, ics):
+    data.linear_fits = []
+    nc = len(data.cycles)
+    for ii, ic in enumerate(ics):
+        ic = ic if ic >= 0 else nc + ic
+        irange = data.cycles[ic]
+        out = _fit_stress_strain(data.stress[irange], data.strain[irange])
+        data.linear_fits.append((ic, out))
+
+    return data
+
 def fit_stress_strain_cycles(data, odd=1, even=1, cut_last=1):
     """
     Determine overall Young's modulus of elasticity in the selected cycles.
@@ -272,14 +283,17 @@ def fit_stress_strain_cycles(data, odd=1, even=1, cut_last=1):
         data = detect_strain_cycles(data)
 
     ics = data.get_cycle_indices(odd, even, cut_last)
+    return _fit_stress_strain_cycles(data, ics)
 
-    data.linear_fits = []
-    for ii, ic in enumerate(ics):
-        irange = data.cycles[ic]
-        out = _fit_stress_strain(data.stress[irange], data.strain[irange])
-        data.linear_fits.append((ic, out))
+def fit_stress_strain_cycles_list(data, ics=[0]):
+    if not len(data.cycles):
+        data = detect_strain_cycles(data)
 
-    return data
+    return _fit_stress_strain_cycles(data, ics)
+
+def _parse_list_of_ints(arg_str):
+    return [int(ii.strip()) for ii in arg_str[1:-1].split(';')]
+fit_stress_strain_cycles_list._elfpy_arg_parsers = {'ics' : _parse_list_of_ints}
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
