@@ -183,7 +183,7 @@ def save_fits(datas, filename='', mode='w'):
 
     fd = open(filename, mode)
     fd.write('# index, data name, cycle, strain region1 start, stop,'
-             ' stiffness, ...\n')
+             ' stiffness1, ...\n')
     for ii, data in enumerate(datas):
         ok = 2
         if data.linear_fit_small is None:
