@@ -280,6 +280,16 @@ def mark_fits(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+def mark_cycles_fits(data, fig_num=1, ax=0, label=''):
+    ax = _get_ax(fig_num, ax)
+
+    colors = make_colors(len(data.linear_fits))
+
+    for ii, (ic, fit) in enumerate(data.linear_fits):
+        _plot_fit_line(data, data.cycles[ic], fit, colors[ii], 5, '%d' % ic)
+
+    return ax
+
 def show(datas, **kwargs):
     plt.show()
 
