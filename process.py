@@ -32,8 +32,6 @@ $ python process.py data/*.txt -f 'smooth_strain : smooth_stress' -p 'use_marker
   stress-strain curve and save it to a text file:
 
 $ python process.py data/*.txt -f 'smooth_strain : smooth_stress : select_cycle, -1 : get_ultimate_values' -p 'use_markers, 0 : plot_stress_strain, 1, 0, stress-strain : mark_ultimate_values, 1, 1' -s 'save_ultimate_values : save_figure, 1' -n
-
-  Always use -n option, when saving figures.
 """
 from optparse import OptionParser
 import glob
@@ -233,7 +231,7 @@ def main():
     vv.update(vars(pl))
     saves = parse_filter_pipeline(save_cmds, get=vv.get, name='saves')
     if cmdl_options.show:
-        saves = [(pl.show, {})] + saves
+        saves = saves + [(pl.show, {})]
 
     datas = read_all_data(args)
 
