@@ -105,10 +105,10 @@ def get_commands(options):
 
     return filter_cmds, plot_cmds, save_cmds
 
-def read_all_data(filenames):
+def read_all_data(filenames, options):
     directory = op.split(__file__)[0]
-    areas = read_file_info(op.join(directory, 'cross_sections.txt'))
-    lengths = read_file_info(op.join(directory, 'init_lengths.txt'))
+    areas = read_file_info(op.join(directory, options.cross_sections_filename))
+    lengths = read_file_info(op.join(directory, options.init_lengths_filename))
 
     datas = []
     for i_file, filename in enumerate(filenames):
@@ -188,6 +188,10 @@ _help = {
     'filters' : 'filters that should be applied to data files',
     'plots' : 'plots that should be created for data files',
     'saves' : 'commands to save results into files',
+    'init_lengths' : 'text file with initial specimen lengths'
+    ' (<data file name> <value> per line, # is comment) [default: %default]',
+    'cross_sections' : 'text file with initial specimen cross sections'
+    ' (<data file name> <value> per line, # is comment) [default: %default]',
     'no_show' : 'do not show figures',
     'command_file' : 'file with filter commands followed by plot commands.'
     ' The two groups has to be separated by a line with one or several "-"'
@@ -210,6 +214,16 @@ def main():
                       metavar='save1,arg1,...,argN:save2,...',
                       action='store', type='string', dest='saves',
                       default=None, help=_help['saves'])
+    parser.add_option('', '--init-lengths',
+                      metavar='filename', action='store', type='string',
+                      dest='init_lengths_filename',
+                      default='init_lengths.txt',
+                      help=_help['init_lengths'])
+    parser.add_option('', '--cross-sections',
+                      metavar='filename', action='store', type='string',
+                      dest='cross_sections_filename',
+                      default='cross_sections.txt',
+                      help=_help['cross_sections'])
     parser.add_option('-n', '--no-show',
                       action='store_false', dest='show',
                       default=True, help=_help['no_show'])
@@ -238,7 +252,7 @@ def main():
     if cmdl_options.show:
         saves = saves + [(pl.show, {})]
 
-    datas = read_all_data(args)
+    datas = read_all_data(args, cmdl_options)
 
     run_pipeline(filters, plots, saves, datas)
 
