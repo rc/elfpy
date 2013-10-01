@@ -228,6 +228,7 @@ def plot_cycles_time(data, fig_num=1, ax=0):
 
     for ii in data.cycles:
         plt.vlines(data.full_time[ii.start], ymin, ymax)
+        plt.vlines(data.full_time[ii.stop], ymin, ymax, colors='b')
 
     return ax
 
