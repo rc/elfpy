@@ -227,16 +227,29 @@ def set_stress_regions(data, def_s0=-1.0, def_s1=-1.0,
     If positive, [def_s0, def_s1] strain range is set as small deformations,
     [def_l0, def_l1] as large deformations.
     """
+    data.stress_regions = []
+
     if (def_s0 >= 0.0) and (def_s1 >= 0):
         assert(def_s0 < def_s1)
-        i0 = np.where(data.strain >= def_s0)[0][0]
-        i1 = np.where(data.strain <= def_s1)[0][-1]
+        try:
+            i0 = np.where(data.strain >= def_s0)[0][0]
+            i1 = np.where(data.strain <= def_s1)[0][-1]
+
+        except IndexError:
+            msg = 'wrong small deformation range! (strain range: [%.2e, %.2e])'
+            raise ValueError(msg % (data.strain.min(), data.strain.max()))
+
         data.irange_small = slice(i0, i1)
 
     if (def_l0 >= 0.0) and (def_l1 >= 0):
         assert(def_l0 < def_l1)
-        i0 = np.where(data.strain >= def_l0)[0][0]
-        i1 = np.where(data.strain <= def_l1)[0][-1]
+        try:
+            i0 = np.where(data.strain >= def_l0)[0][0]
+            i1 = np.where(data.strain <= def_l1)[0][-1]
+        except IndexError:
+            msg = 'wrong large deformation range! (strain range: [%.2e, %.2e])'
+            raise ValueError(msg % (data.strain.min(), data.strain.max()))
+
         data.irange_large = slice(i0, i1)
 
     return data
