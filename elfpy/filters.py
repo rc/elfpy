@@ -115,6 +115,33 @@ def detect_strain_cycles(data):
 
     return data
 
+def detect_strain_cycles2(data, eps=0.01):
+    """
+    Automatic separation of individual cycles in the case of cyclic
+    displacement-induced loading. The process is based on the finding the
+    indices where the first time derivative of strain is almost zero. The
+    ranges where the first time derivative of strain is almost zero are left
+    out.
+
+    Notes
+    -----
+    Sets `cycles` attribute of `data`. Then, for example,
+    `data.strain[data.cycles[ii]]` gives the strain in the ii-th cycle.
+    """
+    # First time derivative of strain.
+    dstrain = np.diff(data.strain) / np.diff(data.time)
+
+    aeps = eps * (dstrain.max() - dstrain.min())
+    ii = np.where(np.abs(dstrain) < aeps)[0]
+
+    runs = np.ediff1d(ii, to_end=2)
+    ir = np.where(runs > 1)[0]
+
+    data.cycles = [slice(ii[ir[ic]], ii[ir[ic] + 1])
+                   for ic in xrange(len(ir) - 1)]
+
+    return data
+
 def select_cycle(data, cycle=-1):
     """
     Select current cycle.
