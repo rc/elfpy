@@ -33,7 +33,8 @@ class Data(Object):
                         linear_fits=None,
                         stress_regions=None,
                         irange_small=None, irange_large=None,
-                        linear_fit_small=None, linear_fit_large=None)
+                        linear_fit_small=None, linear_fit_large=None,
+                        strains_of_stresses=None)
 
     def set_initial_values(self, length0=None, area0=None,
                            lengths=None, areas=None):
@@ -235,5 +236,23 @@ def save_cycles_fits(datas, filename='', mode='w'):
 
             cc = '\n' if (iii + 1) == len(data.linear_fits) else ', '
             fd.write(cc)
+
+    fd.close()
+
+def save_strain_of_stress(datas, filename='', mode='w'):
+    filename = _get_filename(datas, filename, 'strain_of_stress', 'txt')
+
+    fd = open(filename, mode)
+    fd.write('# index, data name, cycle, index1, stress1, strain1, ...\n')
+    for ii, data in enumerate(datas):
+        if data.strains_of_stresses is None:
+            raise ValueError('use "find_strain_of_stress" filter!')
+        ics = 'na' if data.icycle is None else '%d' % data.icycle
+        fd.write('%d, %s, %s, ' % (ii, data.name, ics))
+
+        aux = []
+        for ic, (strain, stress) in enumerate(data.strains_of_stresses):
+            aux.append('%d, %.5e, %.5e' % (ic, strain, stress))
+        fd.write((', '.join(aux)) + '\n')
 
     fd.close()

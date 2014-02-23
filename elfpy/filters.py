@@ -299,6 +299,30 @@ def set_ring_test_strain(data, diameter=1.0, relative=True):
 
     return data
 
+def _parse_list_of_floats(arg_str):
+    return [float(ii.strip()) for ii in arg_str[1:-1].split(';')]
+
+def find_strain_of_stress(data, stresses=[0.0]):
+    """
+    For every given stress value, find the smallest strain on the stress-strain
+    curve that it (approximately) corresponds to.
+    """
+    stress = data.stress
+    data.strains_of_stresses = []
+    for ic, val in enumerate(stresses):
+        iw = np.where((stress[:-1] < val) & (val < stress[1:]))[0]
+        if len(iw):
+            iw = iw[0]
+            item = (data.strain[iw], stress[iw])
+
+        else:
+            item = (np.nan, np.nan)
+
+        data.strains_of_stresses.append(item)
+
+    return data
+find_strain_of_stress._elfpy_arg_parsers = {'stresses' : _parse_list_of_floats}
+
 def _fit_stress_strain(stress, strain):
     return np.polyfit(strain, stress, 1)
 
