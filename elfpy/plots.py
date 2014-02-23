@@ -320,6 +320,15 @@ def plot_fits_stiffness(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+def mark_strain_of_stress(data, fig_num=1, ax=0, label=''):
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+
+    for ic, (strain, stress) in enumerate(data.strains_of_stresses):
+        plt.plot(strain, stress, 'k*', ms=20, label=label)
+
+    return ax
+
 def show(datas, **kwargs):
     plt.show()
 
