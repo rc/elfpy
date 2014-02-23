@@ -283,6 +283,22 @@ def set_stress_regions(data, def_s0=-1.0, def_s1=-1.0,
 
     return data
 
+def set_ring_test_strain(data, diameter=1.0, relative=True):
+    """
+    Set strain attribute to a strain corresponding to a ring test with the
+    given pin diameter and the displacements.
+
+    If `relative` is True, the displacements are considered to be relative.
+    """
+    data._strain = None
+
+    dl = data.raw_displ if relative else (data.raw_displ - data.length0)
+
+    data._raw_strain = (2.0 * dl
+                        / (2.0 * (data.length0 + diameter) + np.pi * diameter))
+
+    return data
+
 def _fit_stress_strain(stress, strain):
     return np.polyfit(strain, stress, 1)
 
