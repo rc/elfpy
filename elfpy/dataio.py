@@ -243,7 +243,7 @@ def save_strain_of_stress(datas, filename='', mode='w'):
     filename = _get_filename(datas, filename, 'strain_of_stress', 'txt')
 
     fd = open(filename, mode)
-    fd.write('# index, data name, cycle, index1, stress1, strain1, ...\n')
+    fd.write('# index, data name, cycle, index1, strain1, stress1, ...\n')
     for ii, data in enumerate(datas):
         if data.strains_of_stresses is None:
             raise ValueError('use "find_strain_of_stress" filter!')
