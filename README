@@ -13,4 +13,8 @@ Run
 
 $ python process.py -h
 
-to get more help.
+to get more help and then
+
+$ python process.py -l
+
+to see all available commands.
