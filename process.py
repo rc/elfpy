@@ -40,7 +40,7 @@ import os.path as op
 import matplotlib.pyplot as plt
 
 from elfpy.base import output
-from elfpy.filters import parse_filter_pipeline
+from elfpy.filters import parse_filter_pipeline, list_commands
 from elfpy.dataio import read_file_info, Data
 import elfpy.dataio as dataio
 import elfpy.plots as pl
@@ -185,6 +185,7 @@ def run_pipeline(filters, plots, saves, datas):
 usage = '%prog [options] filenames\n' + __doc__.rstrip()
 
 _help = {
+    'list' : 'list all available filters, plots and save commands',
     'filters' : 'filters that should be applied to data files',
     'plots' : 'plots that should be created for data files',
     'saves' : 'commands to save results into files',
@@ -202,6 +203,9 @@ _help = {
 
 def main():
     parser = OptionParser(usage=usage, version="%prog ")
+    parser.add_option('-l', '--list',
+                      action='store_true', dest='list',
+                      default=False, help=_help['list'])
     parser.add_option('-f', '--filters',
                       metavar='filter1,arg1,...,argN:filter2,...',
                       action='store', type='string', dest='filters',
@@ -238,6 +242,15 @@ def main():
         expanded_args.extend(glob.glob(arg))
     args = expanded_args
 
+    vv = vars(dataio)
+    vv.update(vars(pl))
+
+    if cmdl_options.list:
+        list_commands()
+        list_commands(namespace=vars(pl), name='plots')
+        list_commands(namespace=vv, name='saves', arg0_name='datas')
+        return
+
     if len(args) == 0:
         parser.print_help()
         return
@@ -246,8 +259,6 @@ def main():
 
     filters = parse_filter_pipeline(filter_cmds)
     plots = parse_filter_pipeline(plot_cmds, get=vars(pl).get, name='plots')
-    vv = vars(dataio)
-    vv.update(vars(pl))
     saves = parse_filter_pipeline(save_cmds, get=vv.get, name='saves')
     if cmdl_options.show:
         saves = saves + [(pl.show, {})]

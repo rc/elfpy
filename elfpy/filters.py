@@ -73,6 +73,37 @@ def parse_filter_pipeline(commands, get=None, name='filters', ikw=1):
 
     return filters
 
+def list_commands(namespace=None, name='filters', arg0_name='data', ikw=1):
+    """
+    List all available commands in a given namespace.
+    """
+    if namespace is None: namespace = globals()
+
+    head = 'available %s' % name
+    output(head)
+    output('-' * len(head))
+    output.level += 1
+
+    names = sorted(namespace.keys())
+    for name in names:
+        fun = namespace[name]
+        if not inspect.isfunction(fun): continue
+        if name.startswith('_'): continue
+
+        (args, varargs, keywords, defaults) = inspect.getargspec(fun)
+        if not len(args) or (args[0] != arg0_name): continue
+
+        if defaults is not None:
+            args_str = ', '.join(['%s=%s' % (args[ii], defaults[ii - ikw])
+                                  for ii in range(ikw, len(args))])
+        else:
+            args_str = ''
+
+        output('%s(%s)' % (name, args_str))
+
+    output.level -= 1
+    output('.')
+
 def smooth_strain(data, window_size=35, order=3):
     data.filter_strain(window_size, order)
 
