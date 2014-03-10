@@ -380,19 +380,23 @@ def fit_stress_strain(data, small=1, large=1):
     return data
 
 def _fit_stress_strain_cycles(data, ics):
-    data.linear_fits = []
+    data.cycles_lin_fits = []
     nc = len(data.cycles)
     for ii, ic in enumerate(ics):
         ic = ic if ic >= 0 else nc + ic
         irange = data.cycles[ic]
         out = _fit_stress_strain(data.stress[irange], data.strain[irange])
-        data.linear_fits.append((ic, out))
+        data.cycles_lin_fits.append((ic, out))
 
     return data
 
 def fit_stress_strain_cycles(data, odd=1, even=1, cut_last=1):
     """
     Determine overall Young's modulus of elasticity in the selected cycles.
+
+    Notes
+    -----
+    Sets `cycles_lin_fits`` attribute of `data`.
     """
     if not len(data.cycles):
         data = detect_strain_cycles(data)
@@ -401,6 +405,13 @@ def fit_stress_strain_cycles(data, odd=1, even=1, cut_last=1):
     return _fit_stress_strain_cycles(data, ics)
 
 def fit_stress_strain_cycles_list(data, ics=[0]):
+    """
+    Determine overall Young's modulus of elasticity in the listed cycles.
+
+    Notes
+    -----
+    Sets `cycles_lin_fits`` attribute of `data`.
+    """
     if not len(data.cycles):
         data = detect_strain_cycles(data)
 
