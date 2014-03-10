@@ -403,7 +403,7 @@ def fit_stress_strain(data, region_kind='strain', which=[-999]):
         output('%s index range: (%d, %d)'
                % (region_kind, indx.start, indx.stop))
         out = _fit_stress_strain(data.stress[indx], data.strain[indx])
-        lin_fits.append(out)
+        lin_fits.append((ii, out))
 
     return data
 fit_stress_strain._elfpy_arg_parsers = {'which' : _parse_list_of_ints}

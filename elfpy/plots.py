@@ -296,9 +296,9 @@ def mark_strain_regions_fits(data, fig_num=1, ax=0, label=''):
     else:
         colors = ['b', 'r']
 
-    for ii, fit in enumerate(data.strain_regions_lin_fits):
-        indx = data.strain_regions_iranges[ii]
-        _plot_fit_line(data, indx, fit, colors[ii], 5, '%d' % ii)
+    for ii, (ik, fit) in enumerate(data.strain_regions_lin_fits):
+        indx = data.strain_regions_iranges[ik]
+        _plot_fit_line(data, indx, fit, colors[ii], 5, '%d' % ik)
 
     return ax
 
