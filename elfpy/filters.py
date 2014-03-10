@@ -191,6 +191,7 @@ def select_cycle(data, cycle=-1):
     if not len(data.cycles):
         data = detect_strain_cycles(data)
 
+    data.icycle = cycle
     try:
         data.irange = data.cycles[cycle]
 
@@ -198,8 +199,6 @@ def select_cycle(data, cycle=-1):
         output('cycle %d is not present, using the last one!' % cycle)
         data.icycle = -1
         data.irange = data.cycles[-1]
-
-    data.icycle = cycle
 
     return data
 
