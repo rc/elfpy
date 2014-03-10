@@ -285,6 +285,24 @@ def detect_linear_regions(data, eps_r=0.01, run=10):
 
     return data
 
+def _find_irange(values, val0, val1, up=1, msg='wrong range'):
+    """
+    Find a range in `values` such that `val0 <= values <= val1`.
+    """
+    assert(val0 < val1)
+
+    start, stop = (0, -1) if up else (-1, 0)
+
+    try:
+        i0 = np.where(values >= val0)[0][start]
+        i1 = np.where(values <= val1)[0][stop]
+
+    except IndexError:
+        raise ValueError('%s! ([%.2e, %.2e] in [%.2e, %.2e])'
+                         % (msg, val0, val1, values.min(), values.max()))
+
+    return slice(min(i0, i1), max(i0, i1))
+
 def set_strain_regions(data, def_s0=-1.0, def_s1=-1.0,
                        def_l0=-1.0, def_l1=-1.0, up=1):
     """
@@ -299,30 +317,15 @@ def set_strain_regions(data, def_s0=-1.0, def_s1=-1.0,
     """
     data.strain_regions_iranges = []
 
-    start, stop = (0, -1) if up else (-1, 0)
-
     if (def_s0 >= 0.0) and (def_s1 >= 0):
-        assert(def_s0 < def_s1)
-        try:
-            i0 = np.where(data.strain >= def_s0)[0][start]
-            i1 = np.where(data.strain <= def_s1)[0][stop]
-
-        except IndexError:
-            msg = 'wrong small deformation range! (strain range: [%.2e, %.2e])'
-            raise ValueError(msg % (data.strain.min(), data.strain.max()))
-
-        data.strain_regions_iranges.append(slice(min(i0, i1), max(i0, i1)))
+        irange = _find_irange(data.strain, def_s0, def_s1, up,
+                              'wrong small deformation range')
+        data.strain_regions_iranges.append(irange)
 
     if (def_l0 >= 0.0) and (def_l1 >= 0):
-        assert(def_l0 < def_l1)
-        try:
-            i0 = np.where(data.strain >= def_l0)[0][start]
-            i1 = np.where(data.strain <= def_l1)[0][stop]
-        except IndexError:
-            msg = 'wrong large deformation range! (strain range: [%.2e, %.2e])'
-            raise ValueError(msg % (data.strain.min(), data.strain.max()))
-
-        data.strain_regions_iranges.append(slice(min(i0, i1), max(i0, i1)))
+        irange = _find_irange(data.strain, def_l0, def_l1, up,
+                              'wrong large deformation range')
+        data.strain_regions_iranges.append(irange)
 
     data.strain_regions = [(data.strain[ii.start], data.strain[ii.stop])
                            for ii in data.strain_regions_iranges]
