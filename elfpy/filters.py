@@ -332,6 +332,32 @@ def set_strain_regions(data, def_s0=-1.0, def_s1=-1.0,
 
     return data
 
+def set_strain_regions_list(data, ranges=[0.0, 1.0]):
+    """
+    Set a list of n strain regions.
+
+    The `ranges` argument is a list of 2n floats - beginning and end strain for
+    each region.
+
+    Notes
+    -----
+    Sets `strain_regions` and `strain_regions_iranges` attributes of `data`.
+    """
+    assert((len(ranges) % 2) == 0)
+
+    ranges = np.asarray(ranges).reshape((-1, 2))
+
+    data.strain_regions_iranges = []
+    for rng in ranges:
+        irange = _find_irange(data.strain, rng[0], rng[1])
+        data.strain_regions_iranges.append(irange)
+
+    data.strain_regions = [(data.strain[ii.start], data.strain[ii.stop])
+                           for ii in data.strain_regions_iranges]
+
+    return data
+set_strain_regions_list._elfpy_arg_parsers = {'ranges' : _parse_list_of_floats}
+
 def set_ring_test_strain(data, diameter=1.0, relative=True):
     """
     Set strain attribute to a strain corresponding to a ring test with the
