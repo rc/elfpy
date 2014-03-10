@@ -32,8 +32,8 @@ class Data(Object):
                         icycle=None, cycles=[], irange=slice(None),
                         cycles_lin_fits=None,
                         strain_regions=None,
-                        irange_small=None, irange_large=None,
-                        linear_fit_small=None, linear_fit_large=None,
+                        strain_regions_iranges=None,
+                        strain_regions_lin_fits=None,
                         strains_of_stresses=None)
 
     def set_initial_values(self, length0=None, area0=None,
@@ -180,40 +180,29 @@ def save_ultimate_values(datas, filename='', mode='w'):
 
     fd.close()
 
-def save_fits(datas, filename='', mode='w'):
-    filename = _get_filename(datas, filename, 'linear_fits', 'txt')
+def save_strain_regions_fits(datas, filename='', mode='w'):
+
+    filename = _get_filename(datas, filename,
+                             'strain_regions_linear_fits', 'txt')
 
     fd = open(filename, mode)
     fd.write('# index, data name, cycle, strain region1 start, stop,'
              ' stiffness1, ...\n')
     for ii, data in enumerate(datas):
-        ok = 2
-        if data.linear_fit_small is None:
-            ok -= 1
-
-        if data.linear_fit_large is None:
-            ok -= 1
-
-        if not ok:
+        if data.strain_regions_lin_fits is None:
             raise ValueError('use "fit_stress_strain" filter!')
 
         ics = 'na' if data.icycle is None else '%d' % data.icycle
         fd.write('%d, %s, %s, ' % (ii, data.name, ics))
-        if data.linear_fit_small is not None:
-            strain = data.strain[data.irange_small]
-            fd.write('%.5e, %.5e, %.5e'
-                     % (strain[0], strain[-1], data.linear_fit_small[0]))
 
-            if ok == 1:
-                fd.write('\n')
+        for ii, fit in enumerate(data.strain_regions_lin_fits):
+            indx = data.strain_regions_iranges[ii]
 
-        if ok == 2:
-            fd.write(', ')
+            strain = data.strain[indx]
+            fd.write('%.5e, %.5e, %.5e' % (strain[0], strain[-1], fit[0]))
 
-        if data.linear_fit_large is not None:
-            strain = data.strain[data.irange_large]
-            fd.write('%.5e, %.5e, %.5e\n'
-                     % (strain[0], strain[-1], data.linear_fit_large[0]))
+            cc = '\n' if (ii + 1) == len(data.strain_regions_lin_fits) else ', '
+            fd.write(cc)
 
     fd.close()
 

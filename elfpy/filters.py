@@ -238,6 +238,10 @@ def detect_linear_regions(data, eps_r=0.01, run=10):
     Detect linear-like regions of stress-strain curve (i.e. the regions of
     small and large deformations). The first and last regions are identified
     with small and large deformation linear regions.
+
+    Notes
+    -----
+    Sets `strain_regions` and `strain_regions_iranges` attributes of `data`.
     """
     stress = data.stress
     window_size = max(int(0.001 * stress.shape[0]), 35)
@@ -274,11 +278,10 @@ def detect_linear_regions(data, eps_r=0.01, run=10):
             regions.append(region)
 
     output('%d region(s)' % len(regions))
-    data.strain_regions = regions
 
-    if len(regions):
-        data.irange_small = regions[0]
-        data.irange_large = regions[-1]
+    data.strain_regions_iranges = regions
+    data.strain_regions = [(data.strain[ii.start], data.strain[ii.stop])
+                           for ii in data.strain_regions_iranges]
 
     return data
 
@@ -289,8 +292,12 @@ def set_strain_regions(data, def_s0=-1.0, def_s1=-1.0,
 
     If positive, [def_s0, def_s1] strain range is set as small deformations,
     [def_l0, def_l1] as large deformations.
+
+    Notes
+    -----
+    Sets `strain_regions` and `strain_regions_iranges` attributes of `data`.
     """
-    data.strain_regions = []
+    data.strain_regions_iranges = []
 
     start, stop = (0, -1) if up else (-1, 0)
 
@@ -304,7 +311,7 @@ def set_strain_regions(data, def_s0=-1.0, def_s1=-1.0,
             msg = 'wrong small deformation range! (strain range: [%.2e, %.2e])'
             raise ValueError(msg % (data.strain.min(), data.strain.max()))
 
-        data.irange_small = slice(min(i0, i1), max(i0, i1))
+        data.strain_regions_iranges.append(slice(min(i0, i1), max(i0, i1)))
 
     if (def_l0 >= 0.0) and (def_l1 >= 0):
         assert(def_l0 < def_l1)
@@ -315,7 +322,10 @@ def set_strain_regions(data, def_s0=-1.0, def_s1=-1.0,
             msg = 'wrong large deformation range! (strain range: [%.2e, %.2e])'
             raise ValueError(msg % (data.strain.min(), data.strain.max()))
 
-        data.irange_large = slice(min(i0, i1), max(i0, i1))
+        data.strain_regions_iranges.append(slice(min(i0, i1), max(i0, i1)))
+
+    data.strain_regions = [(data.strain[ii.start], data.strain[ii.stop])
+                           for ii in data.strain_regions_iranges]
 
     return data
 
@@ -359,25 +369,41 @@ find_strain_of_stress._elfpy_arg_parsers = {'stresses' : _parse_list_of_floats}
 def _fit_stress_strain(stress, strain):
     return np.polyfit(strain, stress, 1)
 
-def fit_stress_strain(data, small=1, large=1):
+def fit_stress_strain(data, region_kind='strain', which=[-999]):
     """
     Determine Young's modulus of elasticity in the selected regions.
-    """
-    if small:
-        ii = data.irange_small
-        if ii is None:
-            raise ValueError('small strain range not set!')
-        out = _fit_stress_strain(data.stress[ii], data.strain[ii])
-        data.linear_fit_small = out
 
-    if large:
-        ii = data.irange_large
-        if ii is None:
-            raise ValueError('large strain range not set!')
-        out = _fit_stress_strain(data.stress[ii], data.strain[ii])
-        data.linear_fit_large = out
+    Special value of `which` equal to [-999] means all regions.
+
+    Notes
+    -----
+    Sets `strain_regions_lin_fits` attribute of `data`, according to
+    `region_kind`.
+    """
+    if region_kind == 'strain':
+        iranges = data.strain_regions_iranges
+        lin_fits = data.strain_regions_lin_fits = []
+
+    else:
+        raise ValueError('unknown region kind! (%s)' % region_kind)
+
+    if which == [-999]:
+        which = range(len(iranges))
+
+    for ii in which:
+        try:
+            indx = iranges[ii]
+
+        except IndexError:
+            raise IndexError('%s region %d does not exist!' % (region_kind, ii))
+
+        output('%s index range: (%d, %d)'
+               % (region_kind, indx.start, indx.stop))
+        out = _fit_stress_strain(data.stress[indx], data.strain[indx])
+        lin_fits.append(out)
 
     return data
+fit_stress_strain._elfpy_arg_parsers = {'which' : _parse_list_of_ints}
 
 def _fit_stress_strain_cycles(data, ics):
     data.cycles_lin_fits = []

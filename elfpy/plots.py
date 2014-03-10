@@ -286,13 +286,19 @@ def _plot_fit_line(data, region, coefs, color, linewidth, label):
     stress = coefs[0] * strain + coefs[1]
     plt.plot(strain, stress, color, linewidth=linewidth, label=label)
 
-def mark_fits(data, fig_num=1, ax=0, label=''):
+def mark_strain_regions_fits(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
 
-    _plot_fit_line(data, data.irange_small, data.linear_fit_small, 'b-', 5,
-                   'small strain')
-    _plot_fit_line(data, data.irange_large, data.linear_fit_large, 'r-', 5,
-                   'large strain')
+    n_colors = len(data.strain_regions_lin_fits)
+    if n_colors > 2:
+        colors = make_colors(n_colors)
+
+    else:
+        colors = ['b', 'r']
+
+    for ii, fit in enumerate(data.strain_regions_lin_fits):
+        indx = data.strain_regions_iranges[ii]
+        _plot_fit_line(data, indx, fit, colors[ii], 5, '%d' % ii)
 
     return ax
 
