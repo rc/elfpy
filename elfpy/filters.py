@@ -104,6 +104,12 @@ def list_commands(namespace=None, name='filters', arg0_name='data', ikw=1):
     output.level -= 1
     output('.')
 
+def _parse_list_of_floats(arg_str):
+    return [float(ii.strip()) for ii in arg_str[1:-1].split(';')]
+
+def _parse_list_of_ints(arg_str):
+    return [int(ii.strip()) for ii in arg_str[1:-1].split(';')]
+
 def smooth_strain(data, window_size=35, order=3):
     data.filter_strain(window_size, order)
 
@@ -330,9 +336,6 @@ def set_ring_test_strain(data, diameter=1.0, relative=True):
 
     return data
 
-def _parse_list_of_floats(arg_str):
-    return [float(ii.strip()) for ii in arg_str[1:-1].split(';')]
-
 def find_strain_of_stress(data, stresses=[0.0]):
     """
     For every given stress value, find the smallest strain on the stress-strain
@@ -397,9 +400,6 @@ def fit_stress_strain_cycles(data, odd=1, even=1, cut_last=1):
 
     ics = data.get_cycle_indices(odd, even, cut_last)
     return _fit_stress_strain_cycles(data, ics)
-
-def _parse_list_of_ints(arg_str):
-    return [int(ii.strip()) for ii in arg_str[1:-1].split(';')]
 
 def fit_stress_strain_cycles_list(data, ics=[0]):
     if not len(data.cycles):
