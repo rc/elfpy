@@ -31,7 +31,7 @@ class Data(Object):
                         iult=None, ultimate_stress=None, ultimate_strain=None,
                         icycle=None, cycles=[], irange=slice(None),
                         linear_fits=None,
-                        stress_regions=None,
+                        strain_regions=None,
                         irange_small=None, irange_large=None,
                         linear_fit_small=None, linear_fit_large=None,
                         strains_of_stresses=None)

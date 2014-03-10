@@ -228,7 +228,7 @@ def get_ultimate_values(data, eps=0.1):
 
     return data
 
-def detect_stress_regions(data, eps_r=0.01, run=10):
+def detect_linear_regions(data, eps_r=0.01, run=10):
     """
     Detect linear-like regions of stress-strain curve (i.e. the regions of
     small and large deformations). The first and last regions are identified
@@ -269,7 +269,7 @@ def detect_stress_regions(data, eps_r=0.01, run=10):
             regions.append(region)
 
     output('%d region(s)' % len(regions))
-    data.stress_regions = regions
+    data.strain_regions = regions
 
     if len(regions):
         data.irange_small = regions[0]
@@ -277,7 +277,7 @@ def detect_stress_regions(data, eps_r=0.01, run=10):
 
     return data
 
-def set_stress_regions(data, def_s0=-1.0, def_s1=-1.0,
+def set_strain_regions(data, def_s0=-1.0, def_s1=-1.0,
                        def_l0=-1.0, def_l1=-1.0, up=1):
     """
     Set the regions of small and large deformations.
@@ -285,7 +285,7 @@ def set_stress_regions(data, def_s0=-1.0, def_s1=-1.0,
     If positive, [def_s0, def_s1] strain range is set as small deformations,
     [def_l0, def_l1] as large deformations.
     """
-    data.stress_regions = []
+    data.strain_regions = []
 
     start, stop = (0, -1) if up else (-1, 0)
 

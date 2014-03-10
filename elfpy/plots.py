@@ -259,22 +259,22 @@ def mark_ultimate_values(data, fig_num=1, ax=0, label=''):
 
     return ax
 
-def _plot_stress_region_line(data, region, color, linewidth, label):
+def _plot_region_line(data, region, color, linewidth, label):
     if region is None: return
 
     ii = [region.start, region.stop]
     plt.plot(data.strain[ii], data.stress[ii], color,
              linewidth=linewidth, label=label)
 
-def mark_stress_regions(data, fig_num=1, ax=0, label=''):
+def mark_strain_regions(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
 
-    for region in data.stress_regions:
-        _plot_stress_region_line(data, region, 'k-', 5, label)
+    for region in data.strain_regions:
+        _plot_region_line(data, region, 'k-', 5, label)
 
-    _plot_stress_region_line(data, data.irange_small, 'b-', 5, label)
-    _plot_stress_region_line(data, data.irange_large, 'r-', 5, label)
+    _plot_region_line(data, data.irange_small, 'b-', 5, label)
+    _plot_region_line(data, data.irange_large, 'r-', 5, label)
 
     return ax
 
