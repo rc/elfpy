@@ -285,23 +285,27 @@ def detect_linear_regions(data, eps_r=0.01, run=10):
 
     return data
 
-def _find_irange(values, val0, val1, up=1, msg='wrong range'):
+def _find_irange(values, val0, val1, msg='wrong range'):
     """
-    Find a range in `values` such that `val0 <= values <= val1`.
+    Find the first consecutive range [i0, i1] in `values` such that
+    values[i0] is the first value such that `val0 <= values[i0]` and
+    values[i1] is the last value such that `values[i1] <= val1`.
     """
     assert(val0 < val1)
 
-    start, stop = (0, -1) if up else (-1, 0)
+    i0 = np.where((values[:-1] <= val0) & (val0 <= values[1:]))[0]
+    i1 = np.where((values[:-1] <= val1) & (val1 <= values[1:]))[0]
+    if len(i0) and len(i1):
+        irange = slice(i0[0] + 1, i1[-1] + 1)
 
-    try:
-        i0 = np.where(values >= val0)[0][start]
-        i1 = np.where(values <= val1)[0][stop]
-
-    except IndexError:
+    else:
         raise ValueError('%s! ([%.2e, %.2e] in [%.2e, %.2e])'
                          % (msg, val0, val1, values.min(), values.max()))
 
-    return slice(min(i0, i1), max(i0, i1))
+    output('required: [%s, %s], found: [%s, %s]'
+           % ((val0, val1, values[irange.start], values[irange.stop - 1])))
+
+    return irange
 
 def _find_iranges(values, ranges, up, msg='wrong range'):
     """
