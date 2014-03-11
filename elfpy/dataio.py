@@ -183,30 +183,40 @@ def save_ultimate_values(datas, filename='', mode='w'):
 
     fd.close()
 
-def save_strain_regions_fits(datas, filename='', mode='w'):
-
-    filename = _get_filename(datas, filename,
-                             'strain_regions_linear_fits', 'txt')
-
+def _save_regions_fits(datas, filename, mode, fit_mode):
     fd = open(filename, mode)
-    fd.write('# index, data name, cycle, strain region1 start, stop,'
-             ' stiffness1, ...\n')
+    fd.write('# index, data name, cycle, %s region1 start, stop,'
+             ' stiffness1, ...\n' % fit_mode)
     for ii, data in enumerate(datas):
-        if data.strain_regions_lin_fits is None:
-            raise ValueError('use "fit_stress_strain" filter!')
+        lin_fits = getattr(data, '%s_regions_lin_fits' % fit_mode)
+
+        if lin_fits is None:
+            raise ValueError('use "fit_stress_strain" filter in %s mode!'
+                             % fit_mode)
 
         ics = 'na' if data.icycle is None else '%d' % data.icycle
         fd.write('%d, %s, %s, ' % (ii, data.name, ics))
 
-        for ii, (ik, fit) in enumerate(data.strain_regions_lin_fits):
-            irange = data.strain_regions_iranges[ik]
-            strain = data.strain[irange]
-            fd.write('%.5e, %.5e, %.5e' % (strain[0], strain[-1], fit[0]))
+        iranges = getattr(data, '%s_regions_iranges' % fit_mode)
+        for ii, (ik, fit) in enumerate(lin_fits):
+            irange = iranges[ik]
+            values = getattr(data, fit_mode)[irange]
+            fd.write('%.5e, %.5e, %.5e' % (values[0], values[-1], fit[0]))
 
-            cc = '\n' if (ii + 1) == len(data.strain_regions_lin_fits) else ', '
+            cc = '\n' if (ii + 1) == len(lin_fits) else ', '
             fd.write(cc)
 
     fd.close()
+
+def save_strain_regions_fits(datas, filename='', mode='w'):
+    filename = _get_filename(datas, filename,
+                             'strain_regions_linear_fits', 'txt')
+    _save_regions_fits(datas, filename, mode, 'strain')
+
+def save_stress_regions_fits(datas, filename='', mode='w'):
+    filename = _get_filename(datas, filename,
+                             'stress_regions_linear_fits', 'txt')
+    _save_regions_fits(datas, filename, mode, 'stress')
 
 def save_cycles_fits(datas, filename='', mode='w'):
     filename = _get_filename(datas, filename, 'linear_cycles_fits', 'txt')
