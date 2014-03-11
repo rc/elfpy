@@ -270,11 +270,15 @@ def mark_strain_regions(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
 
-    for region in data.strain_regions:
-        _plot_region_line(data, region, 'k-', 5, label)
+    n_colors = len(data.strain_regions_iranges)
+    if n_colors > 2:
+        colors = make_colors(n_colors)
 
-    _plot_region_line(data, data.irange_small, 'b-', 5, label)
-    _plot_region_line(data, data.irange_large, 'r-', 5, label)
+    else:
+        colors = ['b', 'r']
+
+    for ii, irange in enumerate(data.strain_regions_iranges):
+        _plot_region_line(data, irange, colors[ii], 5, label)
 
     return ax
 
