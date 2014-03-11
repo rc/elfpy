@@ -307,7 +307,7 @@ def _find_irange(values, val0, val1, msg='wrong range'):
 
     return irange
 
-def _find_iranges(values, ranges, up, msg='wrong range'):
+def _find_iranges(values, ranges, msg='wrong range'):
     """
     Find `ranges` in `values` by calling :func:`_find_irange()` for each couple
     in `ranges`.
@@ -318,13 +318,13 @@ def _find_iranges(values, ranges, up, msg='wrong range'):
 
     iranges = []
     for rng in ranges:
-        irange = _find_irange(values, rng[0], rng[1], up, msg)
+        irange = _find_irange(values, rng[0], rng[1], msg)
         iranges.append(irange)
 
     return iranges
 
 def set_strain_regions(data, def_s0=-1.0, def_s1=-1.0,
-                       def_l0=-1.0, def_l1=-1.0, up=1):
+                       def_l0=-1.0, def_l1=-1.0):
     """
     Set the regions of small and large deformations.
 
@@ -338,12 +338,12 @@ def set_strain_regions(data, def_s0=-1.0, def_s1=-1.0,
     data.strain_regions_iranges = []
 
     if (def_s0 >= 0.0) and (def_s1 >= 0):
-        irange = _find_irange(data.strain, def_s0, def_s1, up,
+        irange = _find_irange(data.strain, def_s0, def_s1,
                               'wrong small deformation range')
         data.strain_regions_iranges.append(irange)
 
     if (def_l0 >= 0.0) and (def_l1 >= 0):
-        irange = _find_irange(data.strain, def_l0, def_l1, up,
+        irange = _find_irange(data.strain, def_l0, def_l1,
                               'wrong large deformation range')
         data.strain_regions_iranges.append(irange)
 
@@ -363,7 +363,7 @@ def set_strain_regions_list(data, ranges=[0.0, 1.0]):
     -----
     Sets `strain_regions` and `strain_regions_iranges` attributes of `data`.
     """
-    data.strain_regions_iranges = _find_iranges(data.strain, ranges, 1,
+    data.strain_regions_iranges = _find_iranges(data.strain, ranges,
                                                 msg='wrong strain range')
     data.strain_regions = [(data.strain[ii.start], data.strain[ii.stop])
                            for ii in data.strain_regions_iranges]
