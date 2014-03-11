@@ -371,6 +371,25 @@ def set_strain_regions_list(data, ranges=[0.0, 1.0]):
     return data
 set_strain_regions_list._elfpy_arg_parsers = {'ranges' : _parse_list_of_floats}
 
+def set_stress_regions_list(data, ranges=[0.0, 1.0]):
+    """
+    Set a list of n stress regions.
+
+    The `ranges` argument is a list of 2n floats - beginning and end stress for
+    each region.
+
+    Notes
+    -----
+    Sets `stress_regions` and `stress_regions_iranges` attributes of `data`.
+    """
+    data.stress_regions_iranges = _find_iranges(data.stress, ranges,
+                                                msg='wrong stress range')
+    data.stress_regions = [(data.stress[ii.start], data.stress[ii.stop])
+                           for ii in data.stress_regions_iranges]
+
+    return data
+set_stress_regions_list._elfpy_arg_parsers = {'ranges' : _parse_list_of_floats}
+
 def set_ring_test_strain(data, diameter=1.0, relative=True):
     """
     Set strain attribute to a strain corresponding to a ring test with the
