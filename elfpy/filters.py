@@ -438,12 +438,16 @@ def fit_stress_strain(data, region_kind='strain', which=[-999]):
 
     Notes
     -----
-    Sets `strain_regions_lin_fits` attribute of `data`, according to
-    `region_kind`.
+    Sets `strain_regions_lin_fits` or `stress_regions_lin_fits` attribute of
+    `data`, according to `region_kind`.
     """
     if region_kind == 'strain':
         iranges = data.strain_regions_iranges
         lin_fits = data.strain_regions_lin_fits = []
+
+    elif region_kind == 'stress':
+        iranges = data.stress_regions_iranges
+        lin_fits = data.stress_regions_lin_fits = []
 
     else:
         raise ValueError('unknown region kind! (%s)' % region_kind)
