@@ -259,10 +259,10 @@ def mark_ultimate_values(data, fig_num=1, ax=0, label=''):
 
     return ax
 
-def _plot_region_line(data, region, color, linewidth, label):
-    if region is None: return
+def _plot_region_line(data, irange, color, linewidth, label):
+    if irange is None: return
 
-    ii = [region.start, region.stop]
+    ii = [irange.start, irange.stop]
     plt.plot(data.strain[ii], data.stress[ii], color,
              linewidth=linewidth, label=label)
 
@@ -282,10 +282,10 @@ def mark_strain_regions(data, fig_num=1, ax=0, label=''):
 
     return ax
 
-def _plot_fit_line(data, region, coefs, color, linewidth, label):
+def _plot_fit_line(data, irange, coefs, color, linewidth, label):
     if coefs is None: return
 
-    ii = [region.start, region.stop]
+    ii = [irange.start, irange.stop]
     strain = data.strain[ii]
     stress = coefs[0] * strain + coefs[1]
     plt.plot(strain, stress, color, linewidth=linewidth, label=label)
@@ -301,8 +301,8 @@ def mark_strain_regions_fits(data, fig_num=1, ax=0, label=''):
         colors = ['b', 'r']
 
     for ii, (ik, fit) in enumerate(data.strain_regions_lin_fits):
-        indx = data.strain_regions_iranges[ik]
-        _plot_fit_line(data, indx, fit, colors[ii], 5, '%d' % ik)
+        irange = data.strain_regions_iranges[ik]
+        _plot_fit_line(data, irange, fit, colors[ii], 5, '%d' % ik)
 
     return ax
 
