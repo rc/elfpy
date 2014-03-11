@@ -195,10 +195,9 @@ def save_strain_regions_fits(datas, filename='', mode='w'):
         ics = 'na' if data.icycle is None else '%d' % data.icycle
         fd.write('%d, %s, %s, ' % (ii, data.name, ics))
 
-        for ii, fit in enumerate(data.strain_regions_lin_fits):
-            indx = data.strain_regions_iranges[ii]
-
-            strain = data.strain[indx]
+        for ii, (ik, fit) in enumerate(data.strain_regions_lin_fits):
+            irange = data.strain_regions_iranges[ik]
+            strain = data.strain[irange]
             fd.write('%.5e, %.5e, %.5e' % (strain[0], strain[-1], fit[0]))
 
             cc = '\n' if (ii + 1) == len(data.strain_regions_lin_fits) else ', '
