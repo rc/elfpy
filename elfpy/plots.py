@@ -266,19 +266,28 @@ def _plot_region_line(data, irange, color, linewidth, label):
     plt.plot(data.strain[ii], data.stress[ii], color,
              linewidth=linewidth, label=label)
 
-def mark_strain_regions(data, fig_num=1, ax=0, label=''):
-    ax = _get_ax(fig_num, ax)
+def _mark_regions(data, iranges, ax, label=''):
     label = _get_label(data, label)
 
-    n_colors = len(data.strain_regions_iranges)
+    n_colors = len(iranges)
     if n_colors > 2:
         colors = make_colors(n_colors)
 
     else:
         colors = ['b', 'r']
 
-    for ii, irange in enumerate(data.strain_regions_iranges):
+    for ii, irange in enumerate(iranges):
         _plot_region_line(data, irange, colors[ii], 5, label)
+
+def mark_strain_regions(data, fig_num=1, ax=0, label=''):
+    ax = _get_ax(fig_num, ax)
+    _mark_regions(data, data.strain_regions_iranges, ax, label)
+
+    return ax
+
+def mark_stress_regions(data, fig_num=1, ax=0, label=''):
+    ax = _get_ax(fig_num, ax)
+    _mark_regions(data, data.stress_regions_iranges, ax, label)
 
     return ax
 
