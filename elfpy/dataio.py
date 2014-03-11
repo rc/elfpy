@@ -34,6 +34,9 @@ class Data(Object):
                         strain_regions=None,
                         strain_regions_iranges=None,
                         strain_regions_lin_fits=None,
+                        stress_regions=None,
+                        stress_regions_iranges=None,
+                        stress_regions_lin_fits=None,
                         strains_of_stresses=None)
 
     def set_initial_values(self, length0=None, area0=None,
