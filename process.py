@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 """
 Analyze results of mechanical measurements by applying filters, plots, and save
-commands to data files.
+commands to data files. The available commands can be listed using the --list
+(or -l) option.
 
 The commands can be specified using the command line options, and using a
 command file. As the command line commands are applied after the command file
@@ -19,6 +20,38 @@ After parsing of all commands, the following algorithm is used:
 3. Apply each plot command to each data object.
 4. Apply each save command to the list of all data objects.
 
+Command Syntax
+--------------
+
+Each command consists of a comma-separated list of the command name followed by
+the command arguments. The arguments are positional and can have the following
+types:
+
+- integer
+- float
+- string (written without quotation marks, e.g. strain, stress)
+- list of floats or integers (e.g. [1; 3; 5] - the items are delimited by
+  semicolons so that lists to not interfere with argument parsing)
+
+The command names as well as their possible arguments and argument types can be
+listed using the --list (or -l) option. If some arguments are unspecified,
+their listed default values are used.
+
+The command file has to have the following structure:
+
+all filter commands
+
+-----
+
+all plot commands
+
+-----
+
+all save commands
+
+Lines beginning with '#' are comment lines. Lines beginnings with '-' separate
+the command sections.
+
 Examples
 --------
 
@@ -32,6 +65,32 @@ $ python process.py data/*.txt -f 'smooth_strain : smooth_stress' -p 'use_marker
   stress-strain curve and save it to a text file:
 
 $ python process.py data/*.txt -f 'smooth_strain : smooth_stress : select_cycle, -1 : get_ultimate_values' -p 'use_markers, 0 : plot_stress_strain, 1, 0, stress-strain : mark_ultimate_values, 1, 1' -s 'save_ultimate_values : save_figure, 1' -n
+
+- Corresponding command file:
+
+# Beginning of example command file.
+
+# Filters.
+smooth_strain
+smooth_stress
+select_cycle, -1
+get_ultimate_values
+
+-----
+
+# Plot commands.
+use_markers, 0
+
+plot_stress_strain, 1, 0, stress-strain
+mark_ultimate_values, 1, 1
+
+-----
+
+# Save commands.
+save_ultimate_values
+save_figure, 1
+
+# End of example command file.
 """
 from optparse import OptionParser
 import glob
