@@ -390,10 +390,12 @@ def set_stress_regions_list(data, ranges=[0.0, 1.0]):
     return data
 set_stress_regions_list._elfpy_arg_parsers = {'ranges' : _parse_list_of_floats}
 
-def set_ring_test_strain(data, diameter=1.0, relative=True):
+def set_ring_test_strain(data, diameter=1.0, thickness=0.0, relative=True):
     """
     Set strain attribute to a strain corresponding to a ring test with the
-    given pin diameter and the displacements.
+    given pin diameter and the displacements. If a non-zero thickness is given,
+    the strain in the specimen mid-surface is computed, instead of the default
+    strain of the inner surface.
 
     If `relative` is True, the displacements are considered to be relative.
     """
@@ -402,7 +404,8 @@ def set_ring_test_strain(data, diameter=1.0, relative=True):
     dl = data.raw_displ if relative else (data.raw_displ - data.length0)
 
     data._raw_strain = (2.0 * dl
-                        / (2.0 * (data.length0 + diameter) + np.pi * diameter))
+                        / (2.0 * (data.length0 + diameter)
+                           + np.pi * (diameter + thickness)))
 
     return data
 
