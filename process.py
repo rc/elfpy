@@ -37,17 +37,17 @@ The command names as well as their possible arguments and argument types can be
 listed using the --list (or -l) option. If some arguments are unspecified,
 their listed default values are used.
 
-The command file has to have the following structure:
+The command file has to have the following structure::
 
-all filter commands
+  all filter commands
 
------
+  -----
 
-all plot commands
+  all plot commands
 
------
+  -----
 
-all save commands
+  all save commands
 
 Lines beginning with '#' are comment lines. Lines beginnings with '-' separate
 the command sections.
@@ -66,31 +66,31 @@ $ python process.py data/*.txt -f 'smooth_strain : smooth_stress' -p 'use_marker
 
 $ python process.py data/*.txt -f 'smooth_strain : smooth_stress : select_cycle, -1 : get_ultimate_values' -p 'use_markers, 0 : plot_stress_strain, 1, 0, stress-strain : mark_ultimate_values, 1, 1' -s 'save_ultimate_values : save_figure, 1' -n
 
-- Corresponding command file:
+- Corresponding command file::
 
-# Beginning of example command file.
+    # Beginning of example command file.
 
-# Filters.
-smooth_strain
-smooth_stress
-select_cycle, -1
-get_ultimate_values
+    # Filters.
+    smooth_strain
+    smooth_stress
+    select_cycle, -1
+    get_ultimate_values
 
------
+    -----
 
-# Plot commands.
-use_markers, 0
+    # Plot commands.
+    use_markers, 0
 
-plot_stress_strain, 1, 0, stress-strain
-mark_ultimate_values, 1, 1
+    plot_stress_strain, 1, 0, stress-strain
+    mark_ultimate_values, 1, 1
 
------
+    -----
 
-# Save commands.
-save_ultimate_values
-save_figure, 1
+    # Save commands.
+    save_ultimate_values
+    save_figure, 1
 
-# End of example command file.
+    # End of example command file.
 """
 from optparse import OptionParser
 import glob
