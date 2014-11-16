@@ -107,17 +107,17 @@ class Data(Object):
 
 def read_file_info(filename):
     """
-    Reading of the file.
+    Read an info file.
 
     Parameters
     ----------
-    - filename : string
+    filename : string
+        The name of file with cross-sectional area and length information.
 
     Returns
     -------
-    - info : array
-        The values of cross-sectional area and length of the specimens
-        according to key.
+    info : dict
+        The values of cross-sectional area and length of the specimens,
     """
     fd = open(filename, 'r')
     info = {}
