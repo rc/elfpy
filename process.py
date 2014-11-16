@@ -261,6 +261,8 @@ _help = {
 }
 
 def main():
+    output.level = 0
+
     parser = OptionParser(usage=usage, version="%prog ")
     parser.add_option('-l', '--list',
                       action='store_true', dest='list',
