@@ -316,6 +316,12 @@ def main():
         parser.print_help()
         return
 
+    plt.rcParams['font.size'] = 20
+    plt.rcParams['font.weight'] = 'bold'
+    plt.rcParams['font.family'] = 'sans-serif'
+    plt.rcParams['font.sans-serif'] = 'Arial'
+    plt.rcParams['lines.linewidth'] = 3
+
     filter_cmds, plot_cmds, save_cmds = get_commands(cmdl_options)
 
     filters = parse_filter_pipeline(filter_cmds)
