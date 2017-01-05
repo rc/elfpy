@@ -130,6 +130,25 @@ def reset_stress(data):
 
     return data
 
+def use_data_cycles(data):
+    """
+    Separation of individual cycles using `icycles` field in the data file.
+
+    Notes
+    -----
+    Sets `cycles` attribute of `data`. Then, for example,
+    `data.strain[data.cycles[ii]]` gives the strain in the ii-th cycle.
+    """
+    if data.icycles is None:
+        raise ValueError('"cycle" column index in data is not set!')
+
+    dcycles = data.raw_data[:, data.icycles]
+    ii = np.where(np.ediff1d(dcycles[:-1], to_begin=-1, to_end=-2))[0]
+
+    data.cycles = [slice(ii[ir], ii[ir+1]) for ir in xrange(len(ii) - 1)]
+
+    return data
+
 def detect_strain_cycles(data):
     """
     Automatic separation of individual cycles in the case of cyclic
