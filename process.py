@@ -92,7 +92,7 @@ $ python process.py data/*.txt -f 'smooth_strain : smooth_stress : select_cycle,
 
     # End of example command file.
 """
-from optparse import OptionParser
+from argparse import Action, ArgumentParser, RawDescriptionHelpFormatter
 import glob
 import copy
 import os.path as op
@@ -241,17 +241,25 @@ def run_pipeline(filters, plots, saves, datas):
 
         output('...done')
 
-usage = '%prog [options] filenames\n' + __doc__.rstrip()
+class PlotParsAction(Action):
+    def __call__(self, parser, namespace, values, option_string=None):
+        pars = {}
+        for pair in values.split(';'):
+            key, val = pair.split('=')
+            pars[key] = eval(val)
+        setattr(namespace, self.dest, pars)
 
 _help = {
+    'filenames' : 'files with measurement data',
     'list' : 'list all available filters, plots and save commands',
     'filters' : 'filters that should be applied to data files',
     'plots' : 'plots that should be created for data files',
     'saves' : 'commands to save results into files',
     'init_lengths' : 'text file with initial specimen lengths'
-    ' (<data file name> <value> per line, # is comment) [default: %default]',
+    ' (<data file name> <value> per line, # is comment) [default: %(default)s]',
     'cross_sections' : 'text file with initial specimen cross sections'
-    ' (<data file name> <value> per line, # is comment) [default: %default]',
+    ' (<data file name> <value> per line, # is comment) [default: %(default)s]',
+    'rc' : 'matplotlib resources',
     'no_show' : 'do not show figures',
     'command_file' : 'file with filter commands followed by plot commands.'
     ' The two groups has to be separated by a line with one or several "-"'
@@ -263,43 +271,49 @@ _help = {
 def main():
     output.level = 0
 
-    parser = OptionParser(usage=usage, version="%prog ")
-    parser.add_option('-l', '--list',
-                      action='store_true', dest='list',
-                      default=False, help=_help['list'])
-    parser.add_option('-f', '--filters',
-                      metavar='filter1,arg1,...,argN:filter2,...',
-                      action='store', type='string', dest='filters',
-                      default=None, help=_help['filters'])
-    parser.add_option('-p', '--plots',
-                      metavar='plot1,fig_num,arg1,...,argN:plot2,...',
-                      action='store', type='string', dest='plots',
-                      default=None, help=_help['plots'])
-    parser.add_option('-s', '--saves',
-                      metavar='save1,arg1,...,argN:save2,...',
-                      action='store', type='string', dest='saves',
-                      default=None, help=_help['saves'])
-    parser.add_option('', '--init-lengths',
-                      metavar='filename', action='store', type='string',
-                      dest='init_lengths_filename',
-                      default='init_lengths.txt',
-                      help=_help['init_lengths'])
-    parser.add_option('', '--cross-sections',
-                      metavar='filename', action='store', type='string',
-                      dest='cross_sections_filename',
-                      default='cross_sections.txt',
-                      help=_help['cross_sections'])
-    parser.add_option('-n', '--no-show',
-                      action='store_false', dest='show',
-                      default=True, help=_help['no_show'])
-    parser.add_option('-c', '--command-file',
-                      metavar='filename',
-                      action='store', type='string', dest='command_file',
-                      default=None, help=_help['command_file'])
-    cmdl_options, args = parser.parse_args()
+    parser = ArgumentParser(description=__doc__.rstrip(),
+                            formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('filenames', metavar='filename', nargs='+',
+                        help=_help['filenames'])
+    parser.add_argument('-l', '--list',
+                        action='store_true', dest='list',
+                        default=False, help=_help['list'])
+    parser.add_argument('-f', '--filters',
+                        metavar='filter1,arg1,...,argN:filter2,...',
+                        action='store', dest='filters',
+                        default=None, help=_help['filters'])
+    parser.add_argument('-p', '--plots',
+                        metavar='plot1,fig_num,arg1,...,argN:plot2,...',
+                        action='store', dest='plots',
+                        default=None, help=_help['plots'])
+    parser.add_argument('-s', '--saves',
+                        metavar='save1,arg1,...,argN:save2,...',
+                        action='store', dest='saves',
+                        default=None, help=_help['saves'])
+    parser.add_argument('--init-lengths',
+                        metavar='filename', action='store',
+                        dest='init_lengths_filename',
+                        default='init_lengths.txt',
+                        help=_help['init_lengths'])
+    parser.add_argument('--cross-sections',
+                        metavar='filename', action='store',
+                        dest='cross_sections_filename',
+                        default='cross_sections.txt',
+                        help=_help['cross_sections'])
+    parser.add_argument('--rc', metavar='key=val;...',
+                        action=PlotParsAction, dest='rc',
+                        default={}, help=_help['rc'])
+    parser.add_argument('-n', '--no-show',
+                        action='store_false', dest='show',
+                        default=True, help=_help['no_show'])
+    parser.add_argument('-c', '--command-file',
+                        metavar='filename',
+                        action='store', dest='command_file',
+                        default=None, help=_help['command_file'])
+    cmdl_options = parser.parse_args()
 
     expanded_args = []
-    for arg in args:
+    for arg in cmdl_options.filenames:
         expanded_args.extend(glob.glob(arg))
     args = expanded_args
 
@@ -321,6 +335,8 @@ def main():
     plt.rcParams['font.family'] = 'sans-serif'
     plt.rcParams['font.sans-serif'] = 'Arial'
     plt.rcParams['lines.linewidth'] = 3
+
+    plt.rcParams.update(cmdl_options.rc)
 
     filter_cmds, plot_cmds, save_cmds = get_commands(cmdl_options)
 
