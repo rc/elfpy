@@ -10,20 +10,22 @@ class Data(Object):
     """
 
     @classmethod
-    def from_file(cls, filename, sep=' '):
+    def from_file(cls, filename, sep=' ', itime=2, idispl=1, iforce=0):
         raw_data = read_data(filename, sep=sep)
 
         name = op.splitext(op.basename(filename))[0]
-        obj = cls(name, raw_data)
+        obj = cls(name, raw_data, itime=itime, idispl=idispl, iforce=iforce)
         return obj
 
-    def __init__(self, name, raw_data):
-        raw_force = raw_data[:, 0]
-        raw_displ = raw_data[:, 1]
-        time = raw_data[:, 2]
+    def __init__(self, name, raw_data, itime, idispl, iforce):
+        raw_force = raw_data[:, iforce]
+        raw_displ = raw_data[:, idispl]
+        time = raw_data[:, itime]
         filtered = [False, False]
 
-        Object.__init__(self, name=name, raw_data=raw_data,
+        Object.__init__(self, name=name,
+                        itime=itime, idispl=idispl, iforce=iforce,
+                        raw_data=raw_data,
                         raw_force=raw_force, raw_displ=raw_displ,
                         full_time=time, filtered=filtered,
                         _raw_stress=None, _raw_strain=None,

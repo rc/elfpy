@@ -170,8 +170,12 @@ def read_all_data(filenames, options):
     lengths = read_file_info(op.join(directory, options.init_lengths_filename))
 
     datas = []
+    cols = options.columns
     for i_file, filename in enumerate(filenames):
-        data = Data.from_file(filename)
+        data = Data.from_file(filename, sep=options.separator,
+                              itime=cols.get('time', 2),
+                              idispl=cols.get('displ', 1),
+                              iforce=cols.get('force', 0))
         data.set_initial_values(lengths=lengths, areas=areas)
         datas.append(data)
 
@@ -252,6 +256,9 @@ class PlotParsAction(Action):
 _help = {
     'filenames' : 'files with measurement data',
     'list' : 'list all available filters, plots and save commands',
+    'separator' : 'data separator character [default: %(default)s]',
+    'columns' : 'indices of time, displacement and force columns in data'
+    ' [default: %(default)s]',
     'filters' : 'filters that should be applied to data files',
     'plots' : 'plots that should be created for data files',
     'saves' : 'commands to save results into files',
@@ -278,6 +285,15 @@ def main():
     parser.add_argument('-l', '--list',
                         action='store_true', dest='list',
                         default=False, help=_help['list'])
+    parser.add_argument('--separator',
+                        metavar='separator',
+                        action='store', dest='separator',
+                        default=' ', help=_help['separator'])
+    ac = parser.add_argument('--columns',
+                             metavar='key=val,...',
+                             action=PlotParsAction, dest='columns',
+                             default='time=2;displ=1;force=0',
+                             help=_help['columns'])
     parser.add_argument('-f', '--filters',
                         metavar='filter1,arg1,...,argN:filter2,...',
                         action='store', dest='filters',
@@ -311,6 +327,9 @@ def main():
                         action='store', dest='command_file',
                         default=None, help=_help['command_file'])
     cmdl_options = parser.parse_args()
+
+    if not isinstance(cmdl_options.columns, dict):
+        ac(parser, cmdl_options, ac.default)
 
     expanded_args = []
     for arg in cmdl_options.filenames:
