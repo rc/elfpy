@@ -148,9 +148,9 @@ def read_data(filename, sep=' '):
 
     data = []
     for row in tdata:
-        split_row = row.replace(',', '.').split(sep)
+        split_row = row.split(sep)
 
-        new = [float( ii ) for ii in split_row]
+        new = [float(ii.replace(',', '.')) for ii in split_row]
         data.append(new)
 
 
