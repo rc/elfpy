@@ -374,4 +374,4 @@ def save_figure(datas, fig_num=1, suffix='', filename=''):
 
     filename = _get_filename(datas, filename, '', suffix)
 
-    fig.savefig(filename)
+    fig.savefig(filename, bbox_inches='tight')
