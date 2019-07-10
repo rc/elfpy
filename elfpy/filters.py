@@ -195,6 +195,8 @@ def detect_strain_cycles2(data, eps=0.01):
 
     data.cycles = [slice(ii[ir[ic]], ii[ir[ic] + 1])
                    for ic in xrange(len(ir) - 1)]
+    if data.cycles[-1].stop < len(dstrain):
+        data.cycles.append(slice(data.cycles[-1].stop, len(dstrain)))
 
     return data
 
