@@ -130,6 +130,38 @@ def reset_stress(data):
 
     return data
 
+def set_zero_displacement_for_force(data, force=0.0):
+    """
+    Set zero displacement for the given force.
+    """
+    data._strain = None
+
+    ii = np.where(data.raw_force >= force)[0][0]
+    u1 = data.raw_displ[ii]
+    f1 = data.raw_force[ii] - force
+    if f1 > 0.0:
+        u0 = data.raw_displ[ii - 1]
+        f0 = data.raw_force[ii - 1] - force
+
+        uu = (f1 * u0 - f0 * u1) / (f1 - f0)
+
+    else:
+        uu = u1
+
+    data.new_length0 = data.length0 + uu
+    data.raw_displ = data.raw_displ - uu
+    data._raw_strain = data.raw_displ / data.new_length0
+
+    output('zero displacement set for force %f, index %d, u=%f'
+           % (force, ii, uu))
+    output('length0 = %f, new length0 = %f'
+           % (data.length0, data.new_length0))
+    output('new u0 = %f, new u1 = %f, f0 = %f, f1 = %f'
+           % (data.raw_displ[ii-1], data.raw_displ[ii],
+              data.raw_force[ii-1], data.raw_force[ii]))
+
+    return data
+
 def use_data_cycles(data):
     """
     Separation of individual cycles using `icycles` field in the data file.
