@@ -126,7 +126,7 @@ def read_file_info(filename):
     fd = open(filename, 'r')
     info = {}
     for line in fd:
-        if line and (line[0] not in ['#', '\n']):
+        if line and (not line.isspace()) and (line[0] != '#'):
             key, val = line.split()
             info[key] = float(val)
     fd.close()
