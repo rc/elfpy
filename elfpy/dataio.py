@@ -10,9 +10,9 @@ class Data(Object):
     """
 
     @classmethod
-    def from_file(cls, filename, sep=' ', icycles=None,
+    def from_file(cls, filename, sep=' ', header_rows=2, icycles=None,
                   itime=2, idispl=1, iforce=0):
-        raw_data = read_data(filename, sep=sep)
+        raw_data = read_data(filename, sep=sep, header_rows=header_rows)
 
         name = op.splitext(op.basename(filename))[0]
         obj = cls(name, raw_data, icycles=icycles,
@@ -132,17 +132,17 @@ def read_file_info(filename):
     fd.close()
     return info
 
-def read_data(filename, sep=' '):
+def read_data(filename, sep=' ', header_rows=2):
     """
     Read a data file.
     """
     fd = open(filename, 'r')
     tdata = fd.readlines()
     fd.close()
-    header = '\n'.join(tdata[:2])
+    header = '\n'.join(tdata[:header_rows])
     print header
 
-    tdata = tdata[2:]
+    tdata = tdata[header_rows:]
 
     print 'length:', len(tdata)
 

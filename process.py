@@ -173,6 +173,7 @@ def read_all_data(filenames, options):
     cols = options.columns
     for i_file, filename in enumerate(filenames):
         data = Data.from_file(filename, sep=options.separator,
+                              header_rows=options.header_rows,
                               icycles=cols.get('cycle', None),
                               itime=cols.get('time', 2),
                               idispl=cols.get('displ', 1),
@@ -258,6 +259,7 @@ _help = {
     'filenames' : 'files with measurement data',
     'list' : 'list all available filters, plots and save commands',
     'separator' : 'data separator character [default: %(default)s]',
+    'header_rows' : 'number of data header rows [default: %(default)s]',
     'columns' : 'indices of time, displacement, force and cycle columns'
     ' in data [default: %(default)s]',
     'filters' : 'filters that should be applied to data files',
@@ -290,6 +292,9 @@ def main():
                         metavar='separator',
                         action='store', dest='separator',
                         default=' ', help=_help['separator'])
+    parser.add_argument('--header-rows', type=int,
+                        action='store', dest='header_rows',
+                        default=2, help=_help['header_rows'])
     ac = parser.add_argument('--columns',
                              metavar='key=val,...',
                              action=PlotParsAction, dest='columns',
