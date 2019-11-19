@@ -292,7 +292,8 @@ def main():
                         metavar='separator',
                         action='store', dest='separator',
                         default=' ', help=_help['separator'])
-    parser.add_argument('--header-rows', type=int,
+    parser.add_argument('--header-rows',
+                        metavar='int', type=int,
                         action='store', dest='header_rows',
                         default=2, help=_help['header_rows'])
     ac = parser.add_argument('--columns',
