@@ -183,7 +183,7 @@ def read_all_data(filenames, options):
 
     return datas
 
-def run_pipeline(filters, plots, saves, datas):
+def run_pipeline(filters, plots, saves, datas, cmdl_options):
     """
     Apply filters and then plots to datas.
     """
@@ -235,7 +235,7 @@ def run_pipeline(filters, plots, saves, datas):
         output('...done')
 
         if is_legend:
-            plt.legend()
+            plt.legend(loc=cmdl_options.legend_location)
 
     for ii, save in enumerate(saves):
         fun, kwargs = save
@@ -260,6 +260,8 @@ _help = {
     'list' : 'list all available filters, plots and save commands',
     'separator' : 'data separator character [default: %(default)s]',
     'header_rows' : 'number of data header rows [default: %(default)s]',
+    'legend_location' : 'matplotlib legend location code'
+    ' [default: %(default)s]',
     'columns' : 'indices of time, displacement, force and cycle columns'
     ' in data [default: %(default)s]',
     'filters' : 'filters that should be applied to data files',
@@ -296,6 +298,10 @@ def main():
                         metavar='int', type=int,
                         action='store', dest='header_rows',
                         default=2, help=_help['header_rows'])
+    parser.add_argument('--legend-location',
+                        metavar='int', type=int,
+                        action='store', dest='legend_location', default=0,
+                        help=_help['legend_location'])
     ac = parser.add_argument('--columns',
                              metavar='key=val,...',
                              action=PlotParsAction, dest='columns',
@@ -374,7 +380,7 @@ def main():
 
     datas = read_all_data(args, cmdl_options)
 
-    run_pipeline(filters, plots, saves, datas)
+    run_pipeline(filters, plots, saves, datas, cmdl_options)
 
 if __name__ == '__main__':
     main()
