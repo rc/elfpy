@@ -4,6 +4,7 @@ getch()-like unbuffered character reading from stdin on both Windows and Unix
 _Getch classes inspired by Danny Yoo, iskeydown() based on code by Zachary
 Pincus.
 """
+from __future__ import print_function
 import os, sys
 
 class _Getch:
@@ -26,7 +27,7 @@ class _GetchWindows:
 
     def __call__(self):
         msvcrt = self.msvcrt
-        
+
         c = msvcrt.getch()
         if c == '\x00' or c == '\xE0':    #functions keys
             msvcrt.getch()
@@ -77,8 +78,8 @@ getch = _Getch()
 
 if __name__ == '__main__':
     from base import pause, spause
-    
+
     pause('press a key anytime the script stops!')
     pause()
     spause('last time...')
-    print 'done.'
+    print('done.')

@@ -84,9 +84,9 @@ def make_legend_text(args, ks):
 
     leg = []
     for ii, arg in enumerate(args):
-        print arg
-        print ks[ii][0]
-        print ks[ii][1]
+        output(arg)
+        output(ks[ii][0])
+        output(ks[ii][1])
         leg.append('%s,\n $E_0 = %.6f $, $E_1 = %.6f $'
                    % (op.splitext(arg)[0], ks[ii][0], ks[ii][1]))
     return leg

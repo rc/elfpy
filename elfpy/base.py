@@ -1,3 +1,4 @@
+from __future__ import print_function
 import os, sys
 import numpy as np
 import copy
@@ -30,11 +31,11 @@ def pause(msg=None):
     f = sys._getframe(1)
     ff = f.f_code
     if (msg):
-        print '%s, %d: %s(), %d: %s' % (ff.co_filename, ff.co_firstlineno,
-                                        ff.co_name, f.f_lineno, msg)
+        print('%s, %d: %s(), %d: %s' % (ff.co_filename, ff.co_firstlineno,
+                                        ff.co_name, f.f_lineno, msg))
     else:
-        print '%s, %d: %s(), %d' % (ff.co_filename, ff.co_firstlineno,
-                                    ff.co_name, f.f_lineno)
+        print('%s, %d: %s(), %d' % (ff.co_filename, ff.co_firstlineno,
+                                    ff.co_name, f.f_lineno))
     spause()
 
 def spause(msg=None):
@@ -48,14 +49,14 @@ def spause(msg=None):
     This is useful for debugging. This function is called from pause().
     """
     if (msg):
-        print msg
+        print(msg)
     sys.stdout.flush()
     ch = getch()
     if ch == 'q':
         sys.exit()
 
 def ordered_iteritems(adict):
-    keys = adict.keys()
+    keys = list(adict.keys())
     order = np.argsort(keys)
     for ii in order:
         key = keys[ii]
@@ -97,7 +98,7 @@ class Object(object):
                 else:
                     aux = iterator = arg
 
-                for key, val in iterator.iteritems():
+                for key, val in iterator.items():
                     if (type(val) == dict) and (key != 'traits'):
                         try:
                             flag[level+1]
@@ -124,7 +125,7 @@ class Object(object):
         if kwargs:
             self.__dict__.update(kwargs)
             self.traits = copy.copy(self.__class__.traits)
-            self.set_default_traits(kwargs.iterkeys())
+            self.set_default_traits(kwargs.keys())
 
     def set_default_traits(self, keys):
         self.traits.update({}.fromkeys(keys))
@@ -282,16 +283,16 @@ class Config(Object):
         for kw in optional:
             valid[kw] = conf.get(kw, None)
 
-        for group_key, group in valid.iteritems():
-            for key, val in defaults.iteritems():
+        for group_key, group in valid.items():
+            for key, val in defaults.items():
                 if key not in group:
                     group[key] = val
 
         return Config(**valid)
 
     def override(self, options, can_override):
-        for group_key, group in self.__dict__.iteritems():
-            for key, val in group.iteritems():
+        for group_key, group in self.__dict__.items():
+            for key, val in group.items():
                 if key in can_override:
                     group[key] = getattr(options, key)
 
@@ -340,7 +341,7 @@ class Output(Object):
             if msg.startswith('...'):
                 self.level -= 1
 
-            print self._prefix + ('  ' * self.level) + msg
+            print(self._prefix + ('  ' * self.level) + msg)
 
             if msg.endswith('...'):
                 self.level += 1
@@ -353,7 +354,7 @@ class Output(Object):
                 self.level -= 1
 
             fd = open(filename, 'a')
-            print >>fd, self._prefix + ('  ' * self.level) + msg
+            print(self._prefix + ('  ' * self.level) + msg, file=fd)
             fd.close()
 
             if msg.endswith('...'):

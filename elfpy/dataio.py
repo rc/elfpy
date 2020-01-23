@@ -1,7 +1,8 @@
+import sys
 import os.path as op
 import numpy as np
 
-from elfpy.base import Object
+from elfpy.base import output, Object
 from elfpy.filters import savitzky_golay
 
 class Data(Object):
@@ -136,15 +137,20 @@ def read_data(filename, sep=' ', header_rows=2):
     """
     Read a data file.
     """
-    fd = open(filename, 'r')
+    if sys.version_info > (3, 0):
+        fd = open(filename, 'r', errors='replace')
+
+    else:
+        fd = open(filename, 'r')
+
     tdata = fd.readlines()
     fd.close()
     header = '\n'.join(tdata[:header_rows])
-    print header
+    output(header)
 
     tdata = tdata[header_rows:]
 
-    print 'length:', len(tdata)
+    output('length:', len(tdata))
 
     data = []
     for row in tdata:
@@ -155,7 +161,7 @@ def read_data(filename, sep=' ', header_rows=2):
 
 
     data = np.array(data, dtype=np.float64)
-    print 'shape:', data.shape
+    output('shape:', data.shape)
     return data
 
 def _get_filename(datas, filename, default, suffix):

@@ -190,7 +190,7 @@ def run_pipeline(filters, plots, saves, datas, cmdl_options):
     for ii, flt in enumerate(filters):
         fun, kwargs = flt
 
-        aux = ', '.join(['%s=%s' % kw for kw in kwargs.iteritems()])
+        aux = ', '.join(['%s=%s' % kw for kw in kwargs.items()])
         output('applying: %s(%s) ...' % (fun.__name__, aux))
 
         for ir, data in enumerate(datas):
@@ -209,7 +209,7 @@ def run_pipeline(filters, plots, saves, datas, cmdl_options):
         fun, kwargs = plot
         kwargs = copy.copy(kwargs)
 
-        aux = ', '.join(['%s=%s' % kw for kw in kwargs.iteritems()])
+        aux = ', '.join(['%s=%s' % kw for kw in kwargs.items()])
         output('applying: %s(%s) ...' % (fun.__name__, aux))
 
         shared_ax = kwargs.pop('ax', None)
@@ -240,7 +240,7 @@ def run_pipeline(filters, plots, saves, datas, cmdl_options):
     for ii, save in enumerate(saves):
         fun, kwargs = save
 
-        aux = ', '.join(['%s=%s' % kw for kw in kwargs.iteritems()])
+        aux = ', '.join(['%s=%s' % kw for kw in kwargs.items()])
         output('executing: %s(%s) ...' % (fun.__name__, aux))
 
         fun(datas, **kwargs)
