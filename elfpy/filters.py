@@ -168,7 +168,7 @@ def use_data_cycles(data):
 
     Notes
     -----
-    Sets `cycles` attribute of `data`. Then, for example,
+    Sets `cycles`, `cycles_lengths` attributes of `data`. Then, for example,
     `data.strain[data.cycles[ii]]` gives the strain in the ii-th cycle.
     """
     if data.icycles is None:
@@ -178,6 +178,7 @@ def use_data_cycles(data):
     ii = np.where(np.ediff1d(dcycles[:-1], to_begin=-1, to_end=-2))[0]
 
     data.cycles = [slice(ii[ir], ii[ir+1]) for ir in range(len(ii) - 1)]
+    data.cycles_lengths = np.diff(ii)
 
     return data
 
@@ -189,7 +190,7 @@ def detect_strain_cycles(data):
 
     Notes
     -----
-    Sets `cycles` attribute of `data`. Then, for example,
+    Sets `cycles`, `cycles_lengths` attributes of `data`. Then, for example,
     `data.strain[data.cycles[ii]]` gives the strain in the ii-th cycle.
     """
     # First time derivative of strain.
@@ -200,6 +201,7 @@ def detect_strain_cycles(data):
     ii = np.where(np.abs(np.ediff1d(sign, to_begin=2, to_end=2)) == 2)[0]
 
     data.cycles = [slice(ii[ir], ii[ir+1]) for ir in range(len(ii) - 1)]
+    data.cycles_lengths = np.diff(ii)
 
     return data
 
@@ -213,7 +215,7 @@ def detect_strain_cycles2(data, eps=0.01):
 
     Notes
     -----
-    Sets `cycles` attribute of `data`. Then, for example,
+    Sets `cycles`, `cycles_lengths` attributes of `data`. Then, for example,
     `data.strain[data.cycles[ii]]` gives the strain in the ii-th cycle.
     """
     # First time derivative of strain.
@@ -229,6 +231,8 @@ def detect_strain_cycles2(data, eps=0.01):
                    for ic in range(len(ir) - 1)]
     if data.cycles[-1].stop < len(dstrain):
         data.cycles.append(slice(data.cycles[-1].stop, len(dstrain)))
+
+    data.cycles_lengths = np.array([cc.stop - cc.start for cc in data.cycles])
 
     return data
 
