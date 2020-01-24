@@ -194,12 +194,14 @@ class Object(object):
 
             val = self.traits[key]
 
+            not_set = False
             if isinstance(val, tuple):
                 tr = val[1]
                 try:
                     attr = tr(getattr(self, key))
                 except:
                     attr = '<not set>'
+                    not_set = True
                     val = '%s'
                 else:
                     val = val[0]
@@ -211,8 +213,9 @@ class Object(object):
                     attr = getattr(self, key)
                 except:
                     attr = '<not set>'
+                    not_set = True
 
-            if (attr == '<not set>') and (mode == 'set_only'): continue
+            if not_set and (mode == 'set_only'): continue
 
             if issubclass(attr.__class__, Object):
                 sattr = repr(attr)
