@@ -177,7 +177,7 @@ def use_data_cycles(data):
     dcycles = data.raw_data[:, data.icycles]
     ii = np.where(np.ediff1d(dcycles[:-1], to_begin=-1, to_end=-2))[0]
 
-    data.cycles = [slice(ii[ir], ii[ir+1]) for ir in xrange(len(ii) - 1)]
+    data.cycles = [slice(ii[ir], ii[ir+1]) for ir in range(len(ii) - 1)]
 
     return data
 
@@ -199,7 +199,7 @@ def detect_strain_cycles(data):
     sign = np.sign(dstrain)
     ii = np.where(np.abs(np.ediff1d(sign, to_begin=2, to_end=2)) == 2)[0]
 
-    data.cycles = [slice(ii[ir], ii[ir+1]) for ir in xrange(len(ii) - 1)]
+    data.cycles = [slice(ii[ir], ii[ir+1]) for ir in range(len(ii) - 1)]
 
     return data
 
@@ -226,7 +226,7 @@ def detect_strain_cycles2(data, eps=0.01):
     ir = np.where(runs > 1)[0]
 
     data.cycles = [slice(ii[ir[ic]], ii[ir[ic] + 1])
-                   for ic in xrange(len(ir) - 1)]
+                   for ic in range(len(ir) - 1)]
     if data.cycles[-1].stop < len(dstrain):
         data.cycles.append(slice(data.cycles[-1].stop, len(dstrain)))
 
