@@ -264,6 +264,20 @@ def print_cycles_info(data):
 
     return data
 
+def remove_short_cycles(data, min_length=2):
+    """
+    Remove cycles with length smaller than `min_length`.
+
+    Notes
+    -----
+    Modifies `cycles`, `cycles_lengths` attributes of `data`.
+    """
+    ii = np.where(data.cycles_lengths >= min_length)[0]
+    data.cycles = data.cycles[ii]
+    data.cycles_lengths = data.cycles_lengths[ii]
+
+    return data
+
 def select_cycle(data, cycle=-1, min_length=0):
     """
     Select current cycle.
