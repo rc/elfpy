@@ -232,7 +232,7 @@ def detect_strain_cycles2(data, eps=0.01):
 
     return data
 
-def select_cycle(data, cycle=-1):
+def select_cycle(data, cycle=-1, min_length=0):
     """
     Select current cycle.
 
@@ -252,6 +252,36 @@ def select_cycle(data, cycle=-1):
         output('cycle %d is not present, using the last one!' % cycle)
         data.icycle = -1
         data.irange = data.cycles[-1]
+
+    if min_length > 0:
+        max_length = 0
+        max_ic = 0
+        sign = 1
+        if data.icycle >= 0:
+            iterate = data.cycles[data.icycle:]
+
+        else:
+            iterate = data.cycles[data.icycle::-1]
+            sign = -1
+
+        for ic, cslice in enumerate(iterate):
+            length = cslice.stop - cslice.start
+            if length >= min_length:
+                data.icycle += sign * ic
+                output('cycle with min. length %d found: %d'
+                       ' (length %d)' % (min_length, data.icycle, length))
+                break
+
+            if length > max_length:
+                max_length = length
+                max_ic = ic
+
+        else:
+            data.icycle += sign * max_ic
+            output('no cycle with min. length %d, using the longest cycle %d'
+                   ' (length %d)!' % (min_length, data.icycle, max_length))
+
+        data.irange = data.cycles[data.icycle]
 
     return data
 
