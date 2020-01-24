@@ -258,32 +258,26 @@ def select_cycle(data, cycle=-1, min_length=0):
         data.irange = data.cycles[-1]
 
     if min_length > 0:
-        max_length = 0
-        max_ic = 0
-        sign = 1
         if data.icycle >= 0:
-            iterate = data.cycles[data.icycle:]
+            islice = slice(data.icycle, None)
+            sign = 1
 
         else:
-            iterate = data.cycles[data.icycle::-1]
+            islice = slice(data.icycle, None, -1)
             sign = -1
 
-        for ic, cslice in enumerate(iterate):
-            length = cslice.stop - cslice.start
-            if length >= min_length:
-                data.icycle += sign * ic
-                output('cycle with min. length %d found: %d'
-                       ' (length %d)' % (min_length, data.icycle, length))
-                break
-
-            if length > max_length:
-                max_length = length
-                max_ic = ic
+        ic = np.where(data.cycles_lengths[islice] >= min_length)[0]
+        if len(ic):
+            data.icycle += sign * ic[0]
+            output('cycle with min. length %d found: %d (length %d)' %
+                   (min_length, data.icycle, data.cycles_lengths[data.icycle]))
 
         else:
+            max_ic = data.cycles_lengths[islice].argmax()
             data.icycle += sign * max_ic
             output('no cycle with min. length %d, using the longest cycle %d'
-                   ' (length %d)!' % (min_length, data.icycle, max_length))
+                   ' (length %d)!' %
+                   (min_length, data.icycle, data.cycles_lengths[data.icycle]))
 
         data.irange = data.cycles[data.icycle]
 
