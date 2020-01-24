@@ -199,7 +199,7 @@ def detect_strain_cycles(data):
 
     # Sign change.
     sign = np.sign(dstrain)
-    ii = np.where(np.abs(np.ediff1d(sign, to_begin=2, to_end=2)) == 2)[0]
+    ii = np.where(np.abs(np.ediff1d(sign, to_begin=2, to_end=2)) >= 1)[0]
 
     data.cycles = [slice(ii[ir], ii[ir+1]) for ir in range(len(ii) - 1)]
     data.cycles = np.array(data.cycles)
