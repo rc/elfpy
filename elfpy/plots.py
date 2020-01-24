@@ -359,6 +359,10 @@ def mark_strain_of_stress(data, fig_num=1, ax=0, label=''):
     return ax
 
 def show(datas, **kwargs):
+    for ifig in plt.get_fignums():
+        fig = plt.figure(ifig)
+        fig.tight_layout()
+
     plt.show()
 
 def save_figure(datas, fig_num=1, suffix='', filename=''):
