@@ -127,8 +127,8 @@ def _get_data(dx, dy):
     ic = data_options['sampling']
 
     length = dx.shape[0]
-    num = float(length) / ic
-    ii = np.linspace(0, length - 1, np.ceil(num)).astype(np.int)
+    num = int(np.ceil(float(length) / ic))
+    ii = np.linspace(0, length - 1, num, dtype=np.int)
 
     return dx[ii], dy[ii]
 
