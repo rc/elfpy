@@ -186,7 +186,7 @@ class Object(object):
         else:
             msg = []
 
-        keys = self.traits.keys()
+        keys = list(self.traits.keys())
         order = np.argsort(keys)
         for ii in order:
             key = keys[ii]
