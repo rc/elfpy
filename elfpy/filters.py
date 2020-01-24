@@ -236,6 +236,31 @@ def detect_strain_cycles2(data, eps=0.01):
 
     return data
 
+def print_cycles_info(data):
+    """
+    Print various information about cycles.
+    """
+    n_cycles = len(data.cycles)
+    output('number of cycles:', n_cycles)
+    if not n_cycles:
+        return data
+
+    i0 = data.cycles_lengths.min()
+    i1 = np.where(data.cycles_lengths == i0)[0]
+    output('shortest cycle length: %d (in %d cycle(s))' % (i0, len(i1)))
+    i0 = data.cycles_lengths.max()
+    i1 = np.where(data.cycles_lengths == i0)[0]
+    output('longest cycle length: %d (in %d cycle(s))' % (i0, len(i1)))
+    output('data min., mean, max. in the longest cycle(s):')
+    for ii in i1:
+        strain = data.strain[data.cycles[ii]]
+        stress = data.stress[data.cycles[ii]]
+        output('cycle:', ii)
+        output('strain:', strain.min(), strain.mean(), strain.max())
+        output('stress:', stress.min(), stress.mean(), stress.max())
+
+    return data
+
 def select_cycle(data, cycle=-1, min_length=0):
     """
     Select current cycle.
