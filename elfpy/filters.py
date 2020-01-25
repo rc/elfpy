@@ -251,25 +251,37 @@ def print_cycles_info(data):
     if not n_cycles:
         return data
 
+    slengths = sorted(set(data.cycles_lengths))
+    lhist, lbins = np.histogram(data.cycles_lengths,
+                                bins=slengths + [slengths[-1] + 1])
+    output('histogram of cycle lengths (length: count [duration interval]):')
+    for ib, lbin in enumerate(lbins[:-1]):
+        ii = np.where(data.cycles_lengths == lbin)[0]
+        cdt = data.cycles_dt[ii]
+        output('  % 5d: % 5d [%10.5e, %10.5e]'
+               % (lbin, lhist[ib], cdt.min(), cdt.max()))
+
     i0 = data.cycles_lengths.min()
     i1 = np.where(data.cycles_lengths == i0)[0]
     output('shortest cycle length: %d (in %d cycle(s))' % (i0, len(i1)))
     cdt = data.cycles_dt[i1]
-    output('  duration in [%.2e, %.2e]' % (cdt.min(), cdt.max()))
+    output('  duration in [%10.5e, %10.5e]' % (cdt.min(), cdt.max()))
 
     i0 = data.cycles_lengths.max()
     i1 = np.where(data.cycles_lengths == i0)[0]
     output('longest cycle length: %d (in %d cycle(s))' % (i0, len(i1)))
     cdt = data.cycles_dt[i1]
-    output('  duration in [%.2e, %.2e]' % (cdt.min(), cdt.max()))
+    output('  duration in [%10.5e, %10.5e]' % (cdt.min(), cdt.max()))
 
     output('data min., mean, max. in the longest cycle(s):')
     for ii in i1:
         strain = data.strain[data.cycles[ii]]
         stress = data.stress[data.cycles[ii]]
-        output('cycle:', ii)
-        output('strain:', strain.min(), strain.mean(), strain.max())
-        output('stress:', stress.min(), stress.mean(), stress.max())
+        output('  cycle:', ii)
+        output('    strain: %10.5e, %10.5e, %10.5e'
+               % (strain.min(), strain.mean(), strain.max()))
+        output('    stress: %10.5e, %10.5e, %10.5e'
+               % (stress.min(), stress.mean(), stress.max()))
 
     return data
 
