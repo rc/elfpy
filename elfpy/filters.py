@@ -162,6 +162,14 @@ def set_zero_displacement_for_force(data, force=0.0):
 
     return data
 
+def _update_cycles_attrs(data, cycles):
+    data.cycles = np.array(cycles)
+    data.cycles_lengths = np.array([cc.stop - cc.start for cc in data.cycles])
+    data.cycles_dt = np.array([data.time[ii.stop-1] - data.time[ii.start]
+                               for ii in data.cycles])
+
+    return data
+
 def use_data_cycles(data):
     """
     Separation of individual cycles using `icycles` field in the data file.
@@ -177,10 +185,9 @@ def use_data_cycles(data):
     dcycles = data.raw_data[:, data.icycles]
     ii = np.where(np.ediff1d(dcycles[:-1], to_begin=-1, to_end=-2))[0]
 
-    data.cycles = [slice(ii[ir], ii[ir+1]) for ir in range(len(ii) - 1)]
-    data.cycles = np.array(data.cycles)
-    data.cycles_lengths = np.diff(ii)
+    cycles = [slice(ii[ir], ii[ir+1]) for ir in range(len(ii) - 1)]
 
+    data = _update_cycles_attrs(data, cycles)
     return data
 
 def detect_strain_cycles(data):
@@ -201,10 +208,9 @@ def detect_strain_cycles(data):
     sign = np.sign(dstrain)
     ii = np.where(np.abs(np.ediff1d(sign, to_begin=2, to_end=2)) >= 1)[0]
 
-    data.cycles = [slice(ii[ir], ii[ir+1]) for ir in range(len(ii) - 1)]
-    data.cycles = np.array(data.cycles)
-    data.cycles_lengths = np.diff(ii)
+    cycles = [slice(ii[ir], ii[ir+1]) for ir in range(len(ii) - 1)]
 
+    data = _update_cycles_attrs(data, cycles)
     return data
 
 def detect_strain_cycles2(data, eps=0.01):
@@ -229,14 +235,11 @@ def detect_strain_cycles2(data, eps=0.01):
     runs = np.ediff1d(ii, to_end=2)
     ir = np.where(runs > 1)[0]
 
-    data.cycles = [slice(ii[ir[ic]], ii[ir[ic] + 1])
-                   for ic in range(len(ir) - 1)]
-    if data.cycles[-1].stop < len(dstrain):
-        data.cycles.append(slice(data.cycles[-1].stop, len(dstrain)))
+    cycles = [slice(ii[ir[ic]], ii[ir[ic] + 1]) for ic in range(len(ir) - 1)]
+    if cycles[-1].stop < len(dstrain):
+        cycles.append(slice(cycles[-1].stop, len(dstrain)))
 
-    data.cycles = np.array(data.cycles)
-    data.cycles_lengths = np.array([cc.stop - cc.start for cc in data.cycles])
-
+    data = _update_cycles_attrs(data, cycles)
     return data
 
 def print_cycles_info(data):
@@ -251,9 +254,15 @@ def print_cycles_info(data):
     i0 = data.cycles_lengths.min()
     i1 = np.where(data.cycles_lengths == i0)[0]
     output('shortest cycle length: %d (in %d cycle(s))' % (i0, len(i1)))
+    cdt = data.cycles_dt[i1]
+    output('  duration in [%.2e, %.2e]' % (cdt.min(), cdt.max()))
+
     i0 = data.cycles_lengths.max()
     i1 = np.where(data.cycles_lengths == i0)[0]
     output('longest cycle length: %d (in %d cycle(s))' % (i0, len(i1)))
+    cdt = data.cycles_dt[i1]
+    output('  duration in [%.2e, %.2e]' % (cdt.min(), cdt.max()))
+
     output('data min., mean, max. in the longest cycle(s):')
     for ii in i1:
         strain = data.strain[data.cycles[ii]]
