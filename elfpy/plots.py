@@ -227,10 +227,10 @@ def plot_cycles_time(data, fig_num=1, ax=0):
     ymin, ymax = ax.axis()[2:]
 
     for ii in data.cycles:
-        plt.vlines(data.full_time[ii.start], ymin, ymax,
-                   colors='k', ls='-', alpha=0.5)
-        plt.vlines(data.full_time[ii.stop], ymin, ymax,
-                   colors='b', ls=':', alpha=0.5)
+        plt.vlines(data.full_time[ii.start], ymin, ymax, linestyles='solid',
+                   colors='k', alpha=0.5)
+        plt.vlines(data.full_time[ii.stop], ymin, ymax, linestyles='dotted',
+                   colors='b', alpha=0.5)
 
     return ax
 
