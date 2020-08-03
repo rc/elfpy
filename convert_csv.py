@@ -1,7 +1,7 @@
 """
 Run as:
 
-  python convert_csv.py folie/data '*.csv'
+  python3 convert_csv.py folie/data '*.csv'
 """
 import os
 import sys
@@ -37,12 +37,12 @@ def convert(df_in):
 
     return df
 
-print args
+print(args)
 
 out = pd.DataFrame(columns=['Name', 'Max. force', 'Displacement', 'Time'])
 dgroups = {}
 for ii, filename in enumerate(sorted(get_files(args[0], args[1]))):
-    print filename
+    print(filename)
 
     df, dirname, group = load(filename)
     df = convert(df)
@@ -54,7 +54,7 @@ for ii, filename in enumerate(sorted(get_files(args[0], args[1]))):
         fd.write('\n')
         df.to_csv(fd, float_format='%.6f')
 
-    #print df.head()
+    #print(df.head())
 
     #df.plot(x='Time [s]')
     #plt.show()
@@ -68,7 +68,7 @@ for ii, filename in enumerate(sorted(get_files(args[0], args[1]))):
     datas = groups.setdefault(group, {})
     datas[os.path.basename(filename)] = df
 
-print out
+print(out)
 out.to_csv('results.csv')
 
 fig = plt.figure(1)
@@ -94,7 +94,7 @@ for dirname, groups in sorted(dgroups.items()):
         ax = fig.gca()
         colors = plt.cm.viridis(np.linspace(0, 1, len(dfs) + 1))
         for ii, (name, df) in enumerate(sorted(dfs.items())):
-            print dirname, group, name
+            print(dirname, group, name)
 
             ax.plot(df['Time [s]'], df['Force [N]'], label=name,
                     color=colors[ii], lw=3)
