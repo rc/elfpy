@@ -20,13 +20,14 @@ def get_files(root_dir, pattern):
 
 def load(filename):
     df = pd.read_csv(filename, skiprows=5)
+    df = df.rename(columns=lambda x: x.strip())
     dirname, name = os.path.split(filename)
     return df, dirname, name[:2]
 
 def convert(df_in):
     df = pd.DataFrame()
-
     df['Time [s]'] = df_in['Time sec']
+    df['Cycle'] = df_in['CY-X1']
     df['Force1 [N]'] = df_in['X1L N']
     df['Force2 [N]'] = df_in['X2L N']
     df['Force [N]'] = np.minimum(df['Force1 [N]'], df['Force2 [N]'])
