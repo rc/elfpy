@@ -99,7 +99,7 @@ class Data(Object):
     def get_cycle_indices(self, odd=True, even=True, cut_last=False):
         if not (odd or even): return []
 
-        iis = np.arange(len(self.cycles), dtype=np.int)
+        iis = np.arange(len(self.cycles), dtype=np.int32)
 
         iis = iis[:-1] if cut_last else iis
 

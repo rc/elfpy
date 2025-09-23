@@ -57,14 +57,14 @@ Examples
 
 Let us assume that the measurements are in text files in the data/ directory.
 
-- Plot filtered and raw stress and strain:
+- Plot filtered and raw stress and strain::
 
-$ python process.py data/*.txt -f 'smooth_strain : smooth_stress' -p 'use_markers, 0 : plot_strain_time, 1, 0, filtered : plot_raw_strain_time, 1, 1, raw : plot_stress_time, 2, 0, filtered : plot_raw_stress_time, 2, 1, raw'
+    elfpy-process data/PER_*.txt -f 'smooth_strain : smooth_stress' -p 'use_markers, 0 : plot_strain_time, 1, 0, filtered : plot_raw_strain_time, 1, 1, raw : plot_stress_time, 2, 0, filtered : plot_raw_stress_time, 2, 1, raw'
 
 - Detect ultimate stress and strain in the last strain load cycle, plot it on a
-  stress-strain curve and save it to a text file:
+  stress-strain curve and save it to a text file::
 
-$ python process.py data/*.txt -f 'smooth_strain : smooth_stress : select_cycle, -1 : get_ultimate_values' -p 'use_markers, 0 : plot_stress_strain, 1, 0, stress-strain : mark_ultimate_values, 1, 1' -s 'save_ultimate_values : save_figure, 1' -n
+    elfpy-process data/PER_*.txt -f 'smooth_strain : smooth_stress : select_cycle, -1 : get_ultimate_values' -p 'use_markers, 0 : plot_stress_strain, 1, 0, stress-strain : mark_ultimate_values, 1, 1' -s 'save_ultimate_values : save_figure, 1' -n
 
 - Corresponding command file::
 
@@ -95,7 +95,6 @@ $ python process.py data/*.txt -f 'smooth_strain : smooth_stress : select_cycle,
 from argparse import Action, ArgumentParser, RawDescriptionHelpFormatter
 import glob
 import copy
-import os.path as op
 import matplotlib.pyplot as plt
 
 from elfpy.base import output
@@ -165,9 +164,8 @@ def get_commands(options):
     return filter_cmds, plot_cmds, save_cmds
 
 def read_all_data(filenames, options):
-    directory = op.split(__file__)[0]
-    areas = read_file_info(op.join(directory, options.cross_sections_filename))
-    lengths = read_file_info(op.join(directory, options.init_lengths_filename))
+    areas = read_file_info(options.cross_sections_filename)
+    lengths = read_file_info(options.init_lengths_filename)
 
     datas = []
     cols = options.columns
@@ -362,7 +360,7 @@ def main():
         parser.print_help()
         return
 
-    plt.rcParams['font.size'] = 20
+    plt.rcParams['font.size'] = 12
     plt.rcParams['font.weight'] = 'bold'
     plt.rcParams['font.family'] = 'sans-serif'
     plt.rcParams['font.sans-serif'] = 'Arial'
