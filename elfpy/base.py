@@ -191,10 +191,11 @@ class Object(object):
         return '\n'.join(msg)
 
     def fd_open(self, filename):
-        if isinstance(filename, file):
-            fd = filename
-        else:
+        if isinstance(filename, str):
             fd = open(filename, 'w')
+
+        else:
+            fd = filename
 
         self._fd = fd
         self._filename = filename
