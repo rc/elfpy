@@ -1,5 +1,5 @@
 ElfPy (Experimental lab fits in Python)
----------------------------------------
+=======================================
 
 A collection of Python modules with a command line interface to
 (semi-)automatically evaluate and fit curves from experimental measurements of
@@ -9,12 +9,23 @@ The purpose of elfpy is to make the evaluation of mechanical measurements of
 soft biological tissues easier and to enable a (semi-)automatic determination
 of mechanical properties of these kinds of tissues.
 
-Run
+Installation
+------------
 
-$ python process.py -h
+::
+   git clone https://github.com/rc/elfpy.git
+   cd elfpy
+   pip install ..
 
-to get more help and then
+Usage
+-----
 
-$ python process.py -l
+Run::
+
+  elfpy-process -h
+
+to get more help and then::
+
+  elfpy-process -l aux
 
 to see all available commands.
