@@ -1,10 +1,7 @@
-from __future__ import print_function
 import os, sys
 import numpy as np
 import copy
 import types
-
-from getch import getch
 
 def import_file(filename):
     path = os.path.dirname(filename)
@@ -17,43 +14,6 @@ def import_file(filename):
 def assert_(condition):
     if not condition:
         raise ValueError('assertion failed!')
-
-def pause(msg=None):
-    """
-    Prints the line number and waits for a keypress.
-
-    If you press:
-    "q" ............. it will call sys.exit()
-    any other key ... it will continue execution of the program
-
-    This is useful for debugging.
-    """
-    f = sys._getframe(1)
-    ff = f.f_code
-    if (msg):
-        print('%s, %d: %s(), %d: %s' % (ff.co_filename, ff.co_firstlineno,
-                                        ff.co_name, f.f_lineno, msg))
-    else:
-        print('%s, %d: %s(), %d' % (ff.co_filename, ff.co_firstlineno,
-                                    ff.co_name, f.f_lineno))
-    spause()
-
-def spause(msg=None):
-    """
-    Waits for a keypress.
-
-    If you press:
-    "q" ............. it will call sys.exit()
-    any other key ... it will continue execution of the program
-
-    This is useful for debugging. This function is called from pause().
-    """
-    if (msg):
-        print(msg)
-    sys.stdout.flush()
-    ch = getch()
-    if ch == 'q':
-        sys.exit()
 
 def ordered_iteritems(adict):
     keys = list(adict.keys())
