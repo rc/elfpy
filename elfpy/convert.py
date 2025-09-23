@@ -1,7 +1,7 @@
 """
 Run as:
 
-  python3 convert_csv.py folie/data '*.csv'
+  elfpy-convert <directory name> '*.csv'
 """
 import os
 import sys
@@ -10,8 +10,6 @@ import fnmatch
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
-args = sys.argv[1:]
 
 def get_files(root_dir, pattern):
     for dirpath, dirnames, filenames in os.walk(root_dir):
@@ -38,71 +36,77 @@ def convert(df_in):
 
     return df
 
-print(args)
+def main():
+    args = sys.argv[1:]
 
-out = pd.DataFrame(columns=['Name', 'Max. force', 'Displacement', 'Time'])
-dgroups = {}
-for ii, filename in enumerate(sorted(get_files(args[0], args[1]))):
-    print(filename)
+    print(args)
 
-    df, dirname, group = load(filename)
-    df = convert(df)
+    out = pd.DataFrame(columns=['Name', 'Max. force', 'Displacement', 'Time'])
+    dgroups = {}
+    for ii, filename in enumerate(sorted(get_files(args[0], args[1]))):
+        print(filename)
 
-    oname = 'new-' + filename
-    if not os.path.exists(os.path.dirname(oname)):
-        os.makedirs(os.path.dirname(oname))
-    with open(oname, 'w') as fd:
-        fd.write('\n')
-        df.to_csv(fd, float_format='%.6f')
+        df, dirname, group = load(filename)
+        df = convert(df)
 
-    #print(df.head())
+        oname = 'new-' + filename
+        if not os.path.exists(os.path.dirname(oname)):
+            os.makedirs(os.path.dirname(oname))
+        with open(oname, 'w') as fd:
+            fd.write('\n')
+            df.to_csv(fd, float_format='%.6f')
 
-    #df.plot(x='Time [s]')
-    #plt.show()
+        #print(df.head())
 
-    imax = df['Force [N]'].argmax()
-    row = df.loc[imax]
-    out.loc[ii] = [filename, row['Force [N]'], row['Displacement [mm]'],
-                   row['Time [s]']]
+        #df.plot(x='Time [s]')
+        #plt.show()
 
-    groups = dgroups.setdefault(dirname, {})
-    datas = groups.setdefault(group, {})
-    datas[os.path.basename(filename)] = df
+        imax = df['Force [N]'].argmax()
+        row = df.loc[imax]
+        out.loc[ii] = [filename, row['Force [N]'], row['Displacement [mm]'],
+                       row['Time [s]']]
 
-print(out)
-out.to_csv('results.csv')
+        groups = dgroups.setdefault(dirname, {})
+        datas = groups.setdefault(group, {})
+        datas[os.path.basename(filename)] = df
 
-fig = plt.figure(1)
-fig.clf()
-ax = fig.gca()
-ax.plot(out['Displacement'], ls='', marker='o', label='Displacement')
-ax.plot(out['Max. force'], ls='', marker='o', label='Max. force')
-ax.grid()
-ax.set_xticks(np.arange(len(out)))
-ax.set_xticklabels(map(os.path.basename, out['Name']))
-for tick in ax.get_xticklabels():
-    tick.set_rotation(90)
-ax.legend()
-plt.tight_layout()
+    print(out)
+    out.to_csv('results.csv')
 
-figname = 'max_forces.png'
-fig.savefig(figname, bbox_inches='tight')
+    fig = plt.figure(1)
+    fig.clf()
+    ax = fig.gca()
+    ax.plot(out['Displacement'], ls='', marker='o', label='Displacement')
+    ax.plot(out['Max. force'], ls='', marker='o', label='Max. force')
+    ax.grid()
+    ax.set_xticks(np.arange(len(out)))
+    ax.set_xticklabels(map(os.path.basename, out['Name']))
+    for tick in ax.get_xticklabels():
+        tick.set_rotation(90)
+    ax.legend()
+    plt.tight_layout()
 
-for dirname, groups in sorted(dgroups.items()):
-    for group, dfs in sorted(groups.items()):
-        fig = plt.figure(1)
-        fig.clf()
-        ax = fig.gca()
-        colors = plt.cm.viridis(np.linspace(0, 1, len(dfs) + 1))
-        for ii, (name, df) in enumerate(sorted(dfs.items())):
-            print(dirname, group, name)
+    figname = 'max_forces.png'
+    fig.savefig(figname, bbox_inches='tight')
 
-            ax.plot(df['Time [s]'], df['Force [N]'], label=name,
-                    color=colors[ii], lw=3)
+    for dirname, groups in sorted(dgroups.items()):
+        for group, dfs in sorted(groups.items()):
+            fig = plt.figure(1)
+            fig.clf()
+            ax = fig.gca()
+            colors = plt.cm.viridis(np.linspace(0, 1, len(dfs) + 1))
+            for ii, (name, df) in enumerate(sorted(dfs.items())):
+                print(dirname, group, name)
 
-        ax.legend()
-        ax.set_title(dirname)
-        plt.tight_layout()
+                ax.plot(df['Time [s]'], df['Force [N]'], label=name,
+                        color=colors[ii], lw=3)
 
-        figname = dirname.replace(os.path.sep, '_') + '_' + group + '.png'
-        fig.savefig(figname, bbox_inches='tight')
+            ax.legend()
+            ax.set_title(dirname)
+            plt.tight_layout()
+
+            figname = dirname.replace(os.path.sep, '_') + '_' + group + '.png'
+            fig.savefig(figname, bbox_inches='tight')
+
+if __name__ == '__main__':
+    main()
