@@ -128,7 +128,7 @@ def _get_data(dx, dy):
 
     length = dx.shape[0]
     num = int(np.ceil(float(length) / ic))
-    ii = np.linspace(0, length - 1, num, dtype=np.int)
+    ii = np.linspace(0, length - 1, num, dtype=np.int32)
 
     return dx[ii], dy[ii]
 
