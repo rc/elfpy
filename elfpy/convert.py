@@ -1,7 +1,11 @@
 """
-Run as:
+Run as::
 
   elfpy-convert <directory name> '*.csv'
+
+Then use elfpy-process with the following options::
+
+  --sep=',' --columns='time=1;displ=7;force=4;cycle=2'
 """
 import os
 import sys
