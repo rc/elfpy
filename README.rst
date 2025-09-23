@@ -12,7 +12,8 @@ of mechanical properties of these kinds of tissues.
 Installation
 ------------
 
-::
+Install from sources::
+
    git clone https://github.com/rc/elfpy.git
    cd elfpy
    pip install ..
