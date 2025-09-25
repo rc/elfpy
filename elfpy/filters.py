@@ -29,7 +29,7 @@ def parse_filter_pipeline(commands, get=None, name='filters', ikw=1):
         fun = get(filter_name)
         if fun is None:
             raise ValueError('filter "%s" does not exist!' % filter_name)
-        (args, varargs, keywords, defaults) = inspect.getargspec(fun)
+        args, varargs, keywords, defaults, *rest = inspect.getfullargspec(fun)
 
         if defaults is None:
             defaults = []
@@ -90,7 +90,7 @@ def list_commands(namespace=None, name='filters', arg0_name='data', ikw=1):
         if not inspect.isfunction(fun): continue
         if name.startswith('_'): continue
 
-        (args, varargs, keywords, defaults) = inspect.getargspec(fun)
+        args, varargs, keywords, defaults, *rest = inspect.getfullargspec(fun)
         if not len(args) or (args[0] != arg0_name): continue
 
         if defaults is not None:
