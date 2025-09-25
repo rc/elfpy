@@ -16,7 +16,7 @@ Install from sources::
 
    git clone https://github.com/rc/elfpy.git
    cd elfpy
-   pip install ..
+   pip install .
 
 Usage
 -----
