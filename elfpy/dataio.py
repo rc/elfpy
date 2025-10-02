@@ -125,13 +125,13 @@ def read_file_info(filename):
     info : dict
         The values of cross-sectional area and length of the specimens,
     """
-    fd = open(filename, 'r')
-    info = {}
-    for line in fd:
-        if line and (not line.isspace()) and (line[0] != '#'):
-            key, val = line.split()
-            info[key] = float(val)
-    fd.close()
+    with open(filename, 'r') as fd:
+        info = {}
+        for line in fd:
+            if line and (not line.isspace()) and (line[0] != '#'):
+                key, val = line.split()
+                info[key] = float(val)
+
     return info
 
 def read_data(filename, sep=' ', header_rows=2):
