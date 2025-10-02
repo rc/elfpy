@@ -1,6 +1,6 @@
-import sys
 import os.path as op
 import numpy as np
+import pandas as pd
 
 from elfpy.base import output, Object
 from elfpy.filters import savitzky_golay
@@ -138,32 +138,18 @@ def read_data(filename, sep=' ', header_rows=2):
     """
     Read a data file.
     """
-    if sys.version_info > (3, 0):
-        fd = open(filename, 'r', errors='replace')
+    with open(filename, 'r', errors='replace') as fd:
+        header_lines = [fd.readline() for ii in range(header_rows)]
 
-    else:
-        fd = open(filename, 'r')
-
-    tdata = fd.readlines()
-    fd.close()
-    header = '\n'.join(tdata[:header_rows])
+    header = '\n'.join(header_lines)
+    output('skipped:')
     output(header)
 
-    tdata = tdata[header_rows:]
-
-    output('length:', len(tdata))
-
-    data = []
-    for row in tdata:
-        split_row = row.split(sep)
-
-        new = [float(ii.replace(',', '.')) for ii in split_row]
-        data.append(new)
-
-
-    data = np.array(data, dtype=np.float64)
+    data = pd.read_csv(filename, skiprows=header_rows)
+    output('columns:', list(data.keys()))
     output('shape:', data.shape)
-    return data
+
+    return data.values
 
 def _get_filename(datas, filename, default, suffix):
     if not filename:
