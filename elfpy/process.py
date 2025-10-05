@@ -255,7 +255,7 @@ def main():
 
     parser = ArgumentParser(description=__doc__.rstrip(),
                             formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('filenames', metavar='filename', nargs='+',
+    parser.add_argument('filenames', metavar='filename', nargs='*',
                         help=_help['filenames'])
     parser.add_argument('-l', '--list',
                         action='store_true', dest='list',
