@@ -68,29 +68,6 @@ data_options = {
     'use_markers' : 1,
 }
 
-def make_legend_text(args, ks):
-    """
-    Make a text of a legend.
-
-    Parameters
-    ----------
-    - args : string
-    - ks : float, float
-
-    Returns
-    -------
-    - leg : string
-    """
-
-    leg = []
-    for ii, arg in enumerate(args):
-        output(arg)
-        output(ks[ii][0])
-        output(ks[ii][1])
-        leg.append('%s,\n $E_0 = %.6f $, $E_1 = %.6f $'
-                   % (op.splitext(arg)[0], ks[ii][0], ks[ii][1]))
-    return leg
-
 def _plot_curve(ax, dx, dy, xlabel, ylabel, label='',
                 color=None, title=None, iline=None):
     il = len(ax.lines) if iline is None else iline
