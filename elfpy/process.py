@@ -29,9 +29,9 @@ types:
 
 - integer
 - float
-- string (written without quotation marks, e.g. strain, stress)
-- list of floats or integers (e.g. [1; 3; 5] - the items are delimited by
-  semicolons so that lists to not interfere with argument parsing)
+- string, written with or without quotation marks, e.g. 'strain', stress
+          special characters such as '%' must be quoted
+- list of floats or integers, for example [1, 3, 5]
 
 The command names as well as their possible arguments and argument types can be
 listed using the --list (or -l) option. If some arguments are unspecified,
