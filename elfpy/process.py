@@ -92,10 +92,12 @@ Let us assume that the measurements are in text files in the data/ directory.
 
     # End of example command file.
 """
-from argparse import Action, ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import glob
 import copy
 import matplotlib.pyplot as plt
+
+import soops as so
 
 from elfpy.base import output
 from elfpy.filters import parse_filter_pipeline, list_commands
@@ -223,14 +225,6 @@ def run_pipeline(filters, plots, saves, datas, cmdl_options):
 
         output('...done')
 
-class PlotParsAction(Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        pars = {}
-        for pair in values.split(';'):
-            key, val = pair.split('=')
-            pars[key] = eval(val)
-        setattr(namespace, self.dest, pars)
-
 _help = {
     'filenames' : 'files with measurement data',
     'list' : 'list all available filters, plots and save commands',
@@ -278,11 +272,10 @@ def main():
                         metavar='int', type=int,
                         action='store', dest='legend_location', default=0,
                         help=_help['legend_location'])
-    ac = parser.add_argument('--columns',
-                             metavar='key=val,...',
-                             action=PlotParsAction, dest='columns',
-                             default='time=2;displ=1;force=0;cycle=None',
-                             help=_help['columns'])
+    parser.add_argument('--columns',
+                        metavar='key=val,...', dest='columns',
+                        default='time=2,displ=1,force=0,cycle=None',
+                        help=_help['columns'])
     parser.add_argument('-f', '--filters',
                         metavar='filter1,arg1,...,argN:filter2,...',
                         action='store', dest='filters',
@@ -305,9 +298,8 @@ def main():
                         dest='cross_sections_filename',
                         default='cross_sections.txt',
                         help=_help['cross_sections'])
-    parser.add_argument('--rc', metavar='key=val;...',
-                        action=PlotParsAction, dest='rc',
-                        default={}, help=_help['rc'])
+    parser.add_argument('--rc', metavar='key=val;...', dest='rc',
+                        default='', help=_help['rc'])
     parser.add_argument('-n', '--no-show',
                         action='store_false', dest='show',
                         default=True, help=_help['no_show'])
@@ -317,8 +309,8 @@ def main():
                         default=None, help=_help['command_file'])
     cmdl_options = parser.parse_args()
 
-    if not isinstance(cmdl_options.columns, dict):
-        ac(parser, cmdl_options, ac.default)
+    cmdl_options.columns = so.parse_as_dict(cmdl_options.columns)
+    cmdl_options.rc = so.parse_as_dict(cmdl_options.rc)
 
     expanded_args = []
     for arg in cmdl_options.filenames:
