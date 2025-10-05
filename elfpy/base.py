@@ -184,54 +184,6 @@ class Object(object):
         fd.write('\n')
         self.fd_close()
 
-class Config(Object):
-
-    @staticmethod
-    def from_file(filename, required=None, optional=None, defaults=None):
-        conf_mod = import_file(filename)
-
-        if 'define' in conf_mod.__dict__:
-            define_dict = conf_mod.__dict__['define']()
-        else:
-            define_dict = conf_mod.__dict__
-
-        return Config.from_conf(define_dict, required, optional, defaults)
-
-    @staticmethod
-    def from_conf(conf, required=None, optional=None, defaults=None):
-        if required is None:
-            required = []
-
-        if optional is None:
-            optional = [key for key in conf.keys() if key[:7] == 'options']
-
-        if defaults is None:
-            defaults = {}
-
-        valid = {}
-        for kw in required:
-            try:
-                val = conf[kw]
-            except KeyError:
-                raise ValueError('missing keyword "%s"!' % kw)
-            valid[kw] = val
-
-        for kw in optional:
-            valid[kw] = conf.get(kw, None)
-
-        for group_key, group in valid.items():
-            for key, val in defaults.items():
-                if key not in group:
-                    group[key] = val
-
-        return Config(**valid)
-
-    def override(self, options, can_override):
-        for group_key, group in self.__dict__.items():
-            for key, val in group.items():
-                if key in can_override:
-                    group[key] = getattr(options, key)
-
 class Output(Object):
     """Factory class providing output (print) functions.
 
