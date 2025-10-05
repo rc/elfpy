@@ -2,10 +2,12 @@ import os.path as op
 import numpy as np
 import pandas as pd
 
-from elfpy.base import output, Object
+from soops import Struct
+
+from elfpy.base import output
 from elfpy.filters import savitzky_golay
 
-class Data(Object):
+class Data(Struct):
     """
     Measured data.
     """
@@ -26,7 +28,7 @@ class Data(Object):
         time = raw_data[:, itime]
         filtered = [False, False]
 
-        Object.__init__(self, name=name, icycles=icycles,
+        Struct.__init__(self, name=name, icycles=icycles,
                         itime=itime, idispl=idispl, iforce=iforce,
                         raw_data=raw_data,
                         raw_force=raw_force, raw_displ=raw_displ,
