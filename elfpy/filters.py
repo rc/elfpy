@@ -91,12 +91,6 @@ def list_commands(namespace=None, name='filters', arg0_name='data', ikw=1):
     output.level -= 1
     output('.')
 
-def _parse_list_of_floats(arg_str):
-    return [float(ii.strip()) for ii in arg_str[1:-1].split(';')]
-
-def _parse_list_of_ints(arg_str):
-    return [int(ii.strip()) for ii in arg_str[1:-1].split(';')]
-
 def smooth_strain(data, window_size=35, order=3):
     data.filter_strain(window_size, order)
 
@@ -500,7 +494,6 @@ def set_strain_regions_list(data, ranges=[0.0, 1.0]):
                            for ii in data.strain_regions_iranges]
 
     return data
-set_strain_regions_list._elfpy_arg_parsers = {'ranges' : _parse_list_of_floats}
 
 def set_stress_regions_list(data, ranges=[0.0, 1.0]):
     """
@@ -519,7 +512,6 @@ def set_stress_regions_list(data, ranges=[0.0, 1.0]):
                            for ii in data.stress_regions_iranges]
 
     return data
-set_stress_regions_list._elfpy_arg_parsers = {'ranges' : _parse_list_of_floats}
 
 def set_ring_test_strain(data, diameter=1.0, thickness=0.0, relative=True):
     """
@@ -559,7 +551,6 @@ def find_strain_of_stress(data, stresses=[0.0]):
         data.strains_of_stresses.append(item)
 
     return data
-find_strain_of_stress._elfpy_arg_parsers = {'stresses' : _parse_list_of_floats}
 
 def _fit_stress_strain(stress, strain):
     return np.polyfit(strain, stress, 1)
@@ -602,7 +593,6 @@ def fit_stress_strain(data, region_kind='strain', which=[-999]):
         lin_fits.append((ii, out))
 
     return data
-fit_stress_strain._elfpy_arg_parsers = {'which' : _parse_list_of_ints}
 
 def _fit_stress_strain_cycles(data, ics):
     data.cycles_lin_fits = []
@@ -641,7 +631,6 @@ def fit_stress_strain_cycles_list(data, ics=[0]):
         data = detect_strain_cycles(data)
 
     return _fit_stress_strain_cycles(data, ics)
-fit_stress_strain_cycles_list._elfpy_arg_parsers = {'ics' : _parse_list_of_ints}
 
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.

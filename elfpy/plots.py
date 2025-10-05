@@ -1,8 +1,6 @@
-import os.path as op
 import numpy as np
 import matplotlib.pyplot as plt
 
-from elfpy.filters import _parse_list_of_ints
 from elfpy.dataio import _get_filename
 
 class Cycler(list):
@@ -197,7 +195,6 @@ def plot_cycles_colors_list(data, fig_num=1, ax=0, label='', ics=[0]):
     _plot_cycles_colors(data, ax, label, ics)
 
     return ax
-plot_cycles_colors_list._elfpy_arg_parsers = {'ics' : _parse_list_of_ints}
 
 def plot_cycles_time(data, fig_num=1, ax=0):
     ax = _get_ax(fig_num, ax)
