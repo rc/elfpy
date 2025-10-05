@@ -1,11 +1,13 @@
-import sys
 import os.path as op
 import numpy as np
+import pandas as pd
 
-from elfpy.base import output, Object
+from soops import Struct
+
+from elfpy.base import output
 from elfpy.filters import savitzky_golay
 
-class Data(Object):
+class Data(Struct):
     """
     Measured data.
     """
@@ -26,7 +28,7 @@ class Data(Object):
         time = raw_data[:, itime]
         filtered = [False, False]
 
-        Object.__init__(self, name=name, icycles=icycles,
+        Struct.__init__(self, name=name, icycles=icycles,
                         itime=itime, idispl=idispl, iforce=iforce,
                         raw_data=raw_data,
                         raw_force=raw_force, raw_displ=raw_displ,
@@ -125,45 +127,32 @@ def read_file_info(filename):
     info : dict
         The values of cross-sectional area and length of the specimens,
     """
-    fd = open(filename, 'r')
-    info = {}
-    for line in fd:
-        if line and (not line.isspace()) and (line[0] != '#'):
-            key, val = line.split()
-            info[key] = float(val)
-    fd.close()
+    with open(filename, 'r') as fd:
+        info = {}
+        for line in fd:
+            if line and (not line.isspace()) and (line[0] != '#'):
+                key, val = line.split()
+                info[key] = float(val)
+
     return info
 
 def read_data(filename, sep=' ', header_rows=2):
     """
     Read a data file.
     """
-    if sys.version_info > (3, 0):
-        fd = open(filename, 'r', errors='replace')
+    with open(filename, 'r', errors='replace') as fd:
+        header_lines = [fd.readline() for ii in range(header_rows)]
 
-    else:
-        fd = open(filename, 'r')
-
-    tdata = fd.readlines()
-    fd.close()
-    header = '\n'.join(tdata[:header_rows])
+    header = '\n'.join(header_lines)
+    output('skipped:')
     output(header)
 
-    tdata = tdata[header_rows:]
-
-    output('length:', len(tdata))
-
-    data = []
-    for row in tdata:
-        split_row = row.split(sep)
-
-        new = [float(ii.replace(',', '.')) for ii in split_row]
-        data.append(new)
-
-
-    data = np.array(data, dtype=np.float64)
+    data = pd.read_csv(filename, skiprows=header_rows, delimiter=sep,
+                       encoding_errors='replace')
+    output('columns:', list(data.keys()))
     output('shape:', data.shape)
-    return data
+
+    return data.values
 
 def _get_filename(datas, filename, default, suffix):
     if not filename:
@@ -182,42 +171,39 @@ def _get_filename(datas, filename, default, suffix):
 def save_ultimate_values(datas, filename='', mode='w'):
     filename = _get_filename(datas, filename, 'ultimate_values', 'txt')
 
-    fd = open(filename, mode)
-    fd.write('# index, data name, cycle, ultimate strain, ultimate stress\n')
-    for ii, data in enumerate(datas):
-        if data.ultimate_strain is None:
-            raise ValueError('use "get_ultimate_values" filter!')
+    with open(filename, mode) as fd:
+        fd.write('# index, data name, cycle, ultimate strain, ultimate stress\n')
+        for ii, data in enumerate(datas):
+            if data.ultimate_strain is None:
+                raise ValueError('use "get_ultimate_values" filter!')
 
-        ics = 'na' if data.icycle is None else '%d' % data.icycle
-        fd.write('%d, %s, %s, ' % (ii, data.name, ics))
-        fd.write('%.5e, %.5e\n' % (data.ultimate_strain, data.ultimate_stress))
-
-    fd.close()
+            ics = 'na' if data.icycle is None else '%d' % data.icycle
+            fd.write('%d, %s, %s, ' % (ii, data.name, ics))
+            fd.write('%.5e, %.5e\n'
+                     % (data.ultimate_strain, data.ultimate_stress))
 
 def _save_regions_fits(datas, filename, mode, fit_mode):
-    fd = open(filename, mode)
-    fd.write('# index, data name, cycle, %s region1 start, stop,'
-             ' stiffness1, ...\n' % fit_mode)
-    for ii, data in enumerate(datas):
-        lin_fits = getattr(data, '%s_regions_lin_fits' % fit_mode)
+    with open(filename, mode) as fd:
+        fd.write('# index, data name, cycle, %s region1 start, stop,'
+                 ' stiffness1, ...\n' % fit_mode)
+        for ii, data in enumerate(datas):
+            lin_fits = getattr(data, '%s_regions_lin_fits' % fit_mode)
 
-        if lin_fits is None:
-            raise ValueError('use "fit_stress_strain" filter in %s mode!'
-                             % fit_mode)
+            if lin_fits is None:
+                raise ValueError('use "fit_stress_strain" filter in %s mode!'
+                                 % fit_mode)
 
-        ics = 'na' if data.icycle is None else '%d' % data.icycle
-        fd.write('%d, %s, %s, ' % (ii, data.name, ics))
+            ics = 'na' if data.icycle is None else '%d' % data.icycle
+            fd.write('%d, %s, %s, ' % (ii, data.name, ics))
 
-        iranges = getattr(data, '%s_regions_iranges' % fit_mode)
-        for ii, (ik, fit) in enumerate(lin_fits):
-            irange = iranges[ik]
-            values = getattr(data, fit_mode)[irange]
-            fd.write('%.5e, %.5e, %.5e' % (values[0], values[-1], fit[0]))
+            iranges = getattr(data, '%s_regions_iranges' % fit_mode)
+            for ii, (ik, fit) in enumerate(lin_fits):
+                irange = iranges[ik]
+                values = getattr(data, fit_mode)[irange]
+                fd.write('%.5e, %.5e, %.5e' % (values[0], values[-1], fit[0]))
 
-            cc = '\n' if (ii + 1) == len(lin_fits) else ', '
-            fd.write(cc)
-
-    fd.close()
+                cc = '\n' if (ii + 1) == len(lin_fits) else ', '
+                fd.write(cc)
 
 def save_strain_regions_fits(datas, filename='', mode='w'):
     filename = _get_filename(datas, filename,
@@ -232,39 +218,35 @@ def save_stress_regions_fits(datas, filename='', mode='w'):
 def save_cycles_fits(datas, filename='', mode='w'):
     filename = _get_filename(datas, filename, 'linear_cycles_fits', 'txt')
 
-    fd = open(filename, mode)
-    fd.write('# index, data name, cycle1, strain region1 start, stop,'
-             ' stiffness1, cycle2, ...\n')
-    for ii, data in enumerate(datas):
-        if data.cycles_lin_fits is None:
-            raise ValueError('use "fit_stress_strain_cycles" filter!')
+    with open(filename, mode) as fd:
+        fd.write('# index, data name, cycle1, strain region1 start, stop,'
+                 ' stiffness1, cycle2, ...\n')
+        for ii, data in enumerate(datas):
+            if data.cycles_lin_fits is None:
+                raise ValueError('use "fit_stress_strain_cycles" filter!')
 
-        fd.write('%d, %s, ' % (ii, data.name))
+            fd.write('%d, %s, ' % (ii, data.name))
 
-        for iii, (ic, fit) in enumerate(data.cycles_lin_fits):
-            strain = data.strain[data.cycles[ic]]
-            fd.write('%d, %.5e, %.5e, %.5e'
-                     % (ic, strain[0], strain[-1], fit[0]))
+            for iii, (ic, fit) in enumerate(data.cycles_lin_fits):
+                strain = data.strain[data.cycles[ic]]
+                fd.write('%d, %.5e, %.5e, %.5e'
+                         % (ic, strain[0], strain[-1], fit[0]))
 
-            cc = '\n' if (iii + 1) == len(data.cycles_lin_fits) else ', '
-            fd.write(cc)
-
-    fd.close()
+                cc = '\n' if (iii + 1) == len(data.cycles_lin_fits) else ', '
+                fd.write(cc)
 
 def save_strain_of_stress(datas, filename='', mode='w'):
     filename = _get_filename(datas, filename, 'strain_of_stress', 'txt')
 
-    fd = open(filename, mode)
-    fd.write('# index, data name, cycle, index1, strain1, stress1, ...\n')
-    for ii, data in enumerate(datas):
-        if data.strains_of_stresses is None:
-            raise ValueError('use "find_strain_of_stress" filter!')
-        ics = 'na' if data.icycle is None else '%d' % data.icycle
-        fd.write('%d, %s, %s, ' % (ii, data.name, ics))
+    with open(filename, mode) as fd:
+        fd.write('# index, data name, cycle, index1, strain1, stress1, ...\n')
+        for ii, data in enumerate(datas):
+            if data.strains_of_stresses is None:
+                raise ValueError('use "find_strain_of_stress" filter!')
+            ics = 'na' if data.icycle is None else '%d' % data.icycle
+            fd.write('%d, %s, %s, ' % (ii, data.name, ics))
 
-        aux = []
-        for ic, (strain, stress) in enumerate(data.strains_of_stresses):
-            aux.append('%d, %.5e, %.5e' % (ic, strain, stress))
-        fd.write((', '.join(aux)) + '\n')
-
-    fd.close()
+            aux = []
+            for ic, (strain, stress) in enumerate(data.strains_of_stresses):
+                aux.append('%d, %.5e, %.5e' % (ic, strain, stress))
+            fd.write((', '.join(aux)) + '\n')

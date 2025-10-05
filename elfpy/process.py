@@ -29,9 +29,9 @@ types:
 
 - integer
 - float
-- string (written without quotation marks, e.g. strain, stress)
-- list of floats or integers (e.g. [1; 3; 5] - the items are delimited by
-  semicolons so that lists to not interfere with argument parsing)
+- string, written with or without quotation marks, e.g. 'strain', stress
+          special characters such as '%' must be quoted
+- list of floats or integers, for example [1, 3, 5]
 
 The command names as well as their possible arguments and argument types can be
 listed using the --list (or -l) option. If some arguments are unspecified,
@@ -59,12 +59,12 @@ Let us assume that the measurements are in text files in the data/ directory.
 
 - Plot filtered and raw stress and strain::
 
-    elfpy-process data/PER_*.txt -f 'smooth_strain : smooth_stress' -p 'use_markers, 0 : plot_strain_time, 1, 0, filtered : plot_raw_strain_time, 1, 1, raw : plot_stress_time, 2, 0, filtered : plot_raw_stress_time, 2, 1, raw'
+    elfpy-process data/PER_*.txt -f "smooth_strain : smooth_stress" -p "use_markers, 0 : plot_strain_time, 1, 0, filtered : plot_raw_strain_time, 1, 1, raw : plot_stress_time, 2, 0, filtered : plot_raw_stress_time, 2, 1, raw"
 
 - Detect ultimate stress and strain in the last strain load cycle, plot it on a
   stress-strain curve and save it to a text file::
 
-    elfpy-process data/PER_*.txt -f 'smooth_strain : smooth_stress : select_cycle, -1 : get_ultimate_values' -p 'use_markers, 0 : plot_stress_strain, 1, 0, stress-strain : mark_ultimate_values, 1, 1' -s 'save_ultimate_values : save_figure, 1' -n
+    elfpy-process data/PER_*.txt -f "smooth_strain : smooth_stress : select_cycle, -1 : get_ultimate_values" -p "use_markers, 0 : plot_stress_strain, 1, 0, 'stress-strain' : mark_ultimate_values, 1, 1" -s "save_ultimate_values : save_figure, 1" -n
 
 - Corresponding command file::
 
@@ -81,7 +81,7 @@ Let us assume that the measurements are in text files in the data/ directory.
     # Plot commands.
     use_markers, 0
 
-    plot_stress_strain, 1, 0, stress-strain
+    plot_stress_strain, 1, 0, 'stress-strain'
     mark_ultimate_values, 1, 1
 
     -----
@@ -92,10 +92,12 @@ Let us assume that the measurements are in text files in the data/ directory.
 
     # End of example command file.
 """
-from argparse import Action, ArgumentParser, RawDescriptionHelpFormatter
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import glob
 import copy
 import matplotlib.pyplot as plt
+
+import soops as so
 
 from elfpy.base import output
 from elfpy.filters import parse_filter_pipeline, list_commands
@@ -107,14 +109,13 @@ def get_commands(options):
     """
     Get filter and plot commands from options.
     """
+    filter_cmds = []
+    plot_cmds = []
+    save_cmds = []
     if options.command_file:
-        fd = open(options.command_file, 'r')
-        cmds = fd.readlines()
-        fd.close()
+        with open(options.command_file, 'r') as fd:
+            cmds = fd.readlines()
 
-        filter_cmds = []
-        plot_cmds = []
-        save_cmds = []
         ii = 0
         appends = [plot_cmds.append, save_cmds.append]
         append = filter_cmds.append
@@ -131,35 +132,14 @@ def get_commands(options):
 
             append(cmd)
 
-        filter_cmds = ':'.join(filter_cmds)
-        plot_cmds = ':'.join(plot_cmds)
-        save_cmds = ':'.join(save_cmds)
+    if options.filters:
+        filter_cmds.extend(options.filters.split(':'))
 
-    else:
-        filter_cmds = None
-        plot_cmds = None
-        save_cmds = None
+    if options.plots:
+        plot_cmds.extend(options.plots.split(':'))
 
-    if filter_cmds:
-        if options.filters:
-            filter_cmds = filter_cmds + ':' + options.filters
-
-    else:
-        filter_cmds = options.filters
-
-    if plot_cmds:
-        if options.plots:
-            plot_cmds = plot_cmds + ':' + options.plots
-
-    else:
-        plot_cmds = options.plots
-
-    if save_cmds:
-        if options.saves:
-            save_cmds = save_cmds + ':' + options.saves
-
-    else:
-        save_cmds = options.saves
+    if options.saves:
+        save_cmds.extend(options.saves.split(':'))
 
     return filter_cmds, plot_cmds, save_cmds
 
@@ -245,14 +225,6 @@ def run_pipeline(filters, plots, saves, datas, cmdl_options):
 
         output('...done')
 
-class PlotParsAction(Action):
-    def __call__(self, parser, namespace, values, option_string=None):
-        pars = {}
-        for pair in values.split(';'):
-            key, val = pair.split('=')
-            pars[key] = eval(val)
-        setattr(namespace, self.dest, pars)
-
 _help = {
     'filenames' : 'files with measurement data',
     'list' : 'list all available filters, plots and save commands',
@@ -283,7 +255,7 @@ def main():
 
     parser = ArgumentParser(description=__doc__.rstrip(),
                             formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('filenames', metavar='filename', nargs='+',
+    parser.add_argument('filenames', metavar='filename', nargs='*',
                         help=_help['filenames'])
     parser.add_argument('-l', '--list',
                         action='store_true', dest='list',
@@ -300,11 +272,10 @@ def main():
                         metavar='int', type=int,
                         action='store', dest='legend_location', default=0,
                         help=_help['legend_location'])
-    ac = parser.add_argument('--columns',
-                             metavar='key=val,...',
-                             action=PlotParsAction, dest='columns',
-                             default='time=2;displ=1;force=0;cycle=None',
-                             help=_help['columns'])
+    parser.add_argument('--columns',
+                        metavar='key=val,...', dest='columns',
+                        default='time=2,displ=1,force=0,cycle=None',
+                        help=_help['columns'])
     parser.add_argument('-f', '--filters',
                         metavar='filter1,arg1,...,argN:filter2,...',
                         action='store', dest='filters',
@@ -327,9 +298,8 @@ def main():
                         dest='cross_sections_filename',
                         default='cross_sections.txt',
                         help=_help['cross_sections'])
-    parser.add_argument('--rc', metavar='key=val;...',
-                        action=PlotParsAction, dest='rc',
-                        default={}, help=_help['rc'])
+    parser.add_argument('--rc', metavar='key=val;...', dest='rc',
+                        default='', help=_help['rc'])
     parser.add_argument('-n', '--no-show',
                         action='store_false', dest='show',
                         default=True, help=_help['no_show'])
@@ -339,8 +309,8 @@ def main():
                         default=None, help=_help['command_file'])
     cmdl_options = parser.parse_args()
 
-    if not isinstance(cmdl_options.columns, dict):
-        ac(parser, cmdl_options, ac.default)
+    cmdl_options.columns = so.parse_as_dict(cmdl_options.columns)
+    cmdl_options.rc = so.parse_as_dict(cmdl_options.rc)
 
     expanded_args = []
     for arg in cmdl_options.filenames:
@@ -361,11 +331,7 @@ def main():
         return
 
     plt.rcParams['font.size'] = 12
-    plt.rcParams['font.weight'] = 'bold'
-    plt.rcParams['font.family'] = 'sans-serif'
-    plt.rcParams['font.sans-serif'] = 'Arial'
-    plt.rcParams['lines.linewidth'] = 3
-
+    plt.rcParams['lines.linewidth'] = 1
     plt.rcParams.update(cmdl_options.rc)
 
     filter_cmds, plot_cmds, save_cmds = get_commands(cmdl_options)

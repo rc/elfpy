@@ -27,6 +27,6 @@ Run::
 
 to get more help and then::
 
-  elfpy-process -l aux
+  elfpy-process -l
 
 to see all available commands.
