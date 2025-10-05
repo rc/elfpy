@@ -3,6 +3,7 @@ import numpy as np
 import copy
 import types
 
+from soops import Output
 
 _dashes = '-'*50
 
@@ -183,99 +184,5 @@ class Object(object):
         fd.write(self._format(mode='report', header=header))
         fd.write('\n')
         self.fd_close()
-
-class Output(Object):
-    """Factory class providing output (print) functions.
-
-    Example:
-
-    >>> output = Output('sfepy:')
-    >>> output(1, 2, 3, 'hello')
-    >>> output.prefix = 'my_cool_app:'
-    >>> output(1, 2, 3, 'hello')
-    """
-    traits = {
-        'prefix' : None,
-        'output_function' : None,
-        'level' : None,
-    }
-
-    def __init__(self, prefix, filename=None, combined=False, **kwargs):
-        Object.__init__(self, **kwargs)
-
-        self.prefix = prefix
-
-        self.set_output(filename, combined)
-
-    def __call__(self, *argc, **argv):
-        self.output_function(*argc, **argv)
-
-    def set_output(self, filename=None, combined=False, append=False):
-        """Set the output function - all SfePy printing is accomplished by
-        it. If filename is None, output is to screen only, otherwise it is to
-        the specified file, moreover, if combined is True, both the ways are
-        used.
-
-        Arguments:
-                filename - print into this file
-                combined - print both on screen and into a file
-                append - append to an existing file instead of overwriting it
-        """
-        self.level = 0
-        def output_screen(*argc, **argv):
-            format = '%s' + ' %s' * (len(argc) - 1)
-            msg =  format % argc
-
-            if msg.startswith('...'):
-                self.level -= 1
-
-            print(self._prefix + ('  ' * self.level) + msg)
-
-            if msg.endswith('...'):
-                self.level += 1
-
-        def output_file(*argc, **argv):
-            format = '%s' + ' %s' * (len(argc) - 1)
-            msg =  format % argc
-
-            if msg.startswith('...'):
-                self.level -= 1
-
-            fd = open(filename, 'a')
-            print(self._prefix + ('  ' * self.level) + msg, file=fd)
-            fd.close()
-
-            if msg.endswith('...'):
-                self.level += 1
-
-        def output_combined(*argc, **argv):
-            output_screen(*argc, **argv)
-            output_file(*argc, **argv)
-
-        if filename is None:
-            self.output_function = output_screen
-
-        else:
-            if not append:
-                fd = open(filename, 'w')
-                fd.close()
-
-            if combined:
-                self.output_function = output_combined
-            else:
-                self.output_function = output_file
-
-    def get_output_function(self):
-        return self.output_function
-
-    def set_output_prefix(self, prefix):
-        assert_(isinstance(prefix, str))
-        if len(prefix) > 0:
-            prefix += ' '
-        self._prefix = prefix
-
-    def get_output_prefix(self):
-        return self._prefix[:-1]
-    prefix = property(get_output_prefix, set_output_prefix)
 
 output = Output('elfpy:')
