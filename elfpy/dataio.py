@@ -147,7 +147,8 @@ def read_data(filename, sep=' ', header_rows=2):
     output('skipped:')
     output(header)
 
-    data = pd.read_csv(filename, skiprows=header_rows)
+    data = pd.read_csv(filename, skiprows=header_rows, delimiter=sep,
+                       encoding_errors='replace')
     output('columns:', list(data.keys()))
     output('shape:', data.shape)
 
