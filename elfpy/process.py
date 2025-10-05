@@ -331,11 +331,7 @@ def main():
         return
 
     plt.rcParams['font.size'] = 12
-    plt.rcParams['font.weight'] = 'bold'
-    plt.rcParams['font.family'] = 'sans-serif'
-    plt.rcParams['font.sans-serif'] = 'Arial'
-    plt.rcParams['lines.linewidth'] = 3
-
+    plt.rcParams['lines.linewidth'] = 1
     plt.rcParams.update(cmdl_options.rc)
 
     filter_cmds, plot_cmds, save_cmds = get_commands(cmdl_options)
