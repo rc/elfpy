@@ -107,14 +107,13 @@ def get_commands(options):
     """
     Get filter and plot commands from options.
     """
+    filter_cmds = []
+    plot_cmds = []
+    save_cmds = []
     if options.command_file:
-        fd = open(options.command_file, 'r')
-        cmds = fd.readlines()
-        fd.close()
+        with open(options.command_file, 'r') as fd:
+            cmds = fd.readlines()
 
-        filter_cmds = []
-        plot_cmds = []
-        save_cmds = []
         ii = 0
         appends = [plot_cmds.append, save_cmds.append]
         append = filter_cmds.append
@@ -131,35 +130,14 @@ def get_commands(options):
 
             append(cmd)
 
-        filter_cmds = ':'.join(filter_cmds)
-        plot_cmds = ':'.join(plot_cmds)
-        save_cmds = ':'.join(save_cmds)
+    if options.filters:
+        filter_cmds.extend(options.filters.split(':'))
 
-    else:
-        filter_cmds = None
-        plot_cmds = None
-        save_cmds = None
+    if options.plots:
+        plot_cmds.extend(options.plots.split(':'))
 
-    if filter_cmds:
-        if options.filters:
-            filter_cmds = filter_cmds + ':' + options.filters
-
-    else:
-        filter_cmds = options.filters
-
-    if plot_cmds:
-        if options.plots:
-            plot_cmds = plot_cmds + ':' + options.plots
-
-    else:
-        plot_cmds = options.plots
-
-    if save_cmds:
-        if options.saves:
-            save_cmds = save_cmds + ':' + options.saves
-
-    else:
-        save_cmds = options.saves
+    if options.saves:
+        save_cmds.extend(options.saves.split(':'))
 
     return filter_cmds, plot_cmds, save_cmds
 
