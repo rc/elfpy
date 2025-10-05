@@ -168,42 +168,39 @@ def _get_filename(datas, filename, default, suffix):
 def save_ultimate_values(datas, filename='', mode='w'):
     filename = _get_filename(datas, filename, 'ultimate_values', 'txt')
 
-    fd = open(filename, mode)
-    fd.write('# index, data name, cycle, ultimate strain, ultimate stress\n')
-    for ii, data in enumerate(datas):
-        if data.ultimate_strain is None:
-            raise ValueError('use "get_ultimate_values" filter!')
+    with open(filename, mode) as fd:
+        fd.write('# index, data name, cycle, ultimate strain, ultimate stress\n')
+        for ii, data in enumerate(datas):
+            if data.ultimate_strain is None:
+                raise ValueError('use "get_ultimate_values" filter!')
 
-        ics = 'na' if data.icycle is None else '%d' % data.icycle
-        fd.write('%d, %s, %s, ' % (ii, data.name, ics))
-        fd.write('%.5e, %.5e\n' % (data.ultimate_strain, data.ultimate_stress))
-
-    fd.close()
+            ics = 'na' if data.icycle is None else '%d' % data.icycle
+            fd.write('%d, %s, %s, ' % (ii, data.name, ics))
+            fd.write('%.5e, %.5e\n'
+                     % (data.ultimate_strain, data.ultimate_stress))
 
 def _save_regions_fits(datas, filename, mode, fit_mode):
-    fd = open(filename, mode)
-    fd.write('# index, data name, cycle, %s region1 start, stop,'
-             ' stiffness1, ...\n' % fit_mode)
-    for ii, data in enumerate(datas):
-        lin_fits = getattr(data, '%s_regions_lin_fits' % fit_mode)
+    with open(filename, mode) as fd:
+        fd.write('# index, data name, cycle, %s region1 start, stop,'
+                 ' stiffness1, ...\n' % fit_mode)
+        for ii, data in enumerate(datas):
+            lin_fits = getattr(data, '%s_regions_lin_fits' % fit_mode)
 
-        if lin_fits is None:
-            raise ValueError('use "fit_stress_strain" filter in %s mode!'
-                             % fit_mode)
+            if lin_fits is None:
+                raise ValueError('use "fit_stress_strain" filter in %s mode!'
+                                 % fit_mode)
 
-        ics = 'na' if data.icycle is None else '%d' % data.icycle
-        fd.write('%d, %s, %s, ' % (ii, data.name, ics))
+            ics = 'na' if data.icycle is None else '%d' % data.icycle
+            fd.write('%d, %s, %s, ' % (ii, data.name, ics))
 
-        iranges = getattr(data, '%s_regions_iranges' % fit_mode)
-        for ii, (ik, fit) in enumerate(lin_fits):
-            irange = iranges[ik]
-            values = getattr(data, fit_mode)[irange]
-            fd.write('%.5e, %.5e, %.5e' % (values[0], values[-1], fit[0]))
+            iranges = getattr(data, '%s_regions_iranges' % fit_mode)
+            for ii, (ik, fit) in enumerate(lin_fits):
+                irange = iranges[ik]
+                values = getattr(data, fit_mode)[irange]
+                fd.write('%.5e, %.5e, %.5e' % (values[0], values[-1], fit[0]))
 
-            cc = '\n' if (ii + 1) == len(lin_fits) else ', '
-            fd.write(cc)
-
-    fd.close()
+                cc = '\n' if (ii + 1) == len(lin_fits) else ', '
+                fd.write(cc)
 
 def save_strain_regions_fits(datas, filename='', mode='w'):
     filename = _get_filename(datas, filename,
@@ -218,39 +215,35 @@ def save_stress_regions_fits(datas, filename='', mode='w'):
 def save_cycles_fits(datas, filename='', mode='w'):
     filename = _get_filename(datas, filename, 'linear_cycles_fits', 'txt')
 
-    fd = open(filename, mode)
-    fd.write('# index, data name, cycle1, strain region1 start, stop,'
-             ' stiffness1, cycle2, ...\n')
-    for ii, data in enumerate(datas):
-        if data.cycles_lin_fits is None:
-            raise ValueError('use "fit_stress_strain_cycles" filter!')
+    with open(filename, mode) as fd:
+        fd.write('# index, data name, cycle1, strain region1 start, stop,'
+                 ' stiffness1, cycle2, ...\n')
+        for ii, data in enumerate(datas):
+            if data.cycles_lin_fits is None:
+                raise ValueError('use "fit_stress_strain_cycles" filter!')
 
-        fd.write('%d, %s, ' % (ii, data.name))
+            fd.write('%d, %s, ' % (ii, data.name))
 
-        for iii, (ic, fit) in enumerate(data.cycles_lin_fits):
-            strain = data.strain[data.cycles[ic]]
-            fd.write('%d, %.5e, %.5e, %.5e'
-                     % (ic, strain[0], strain[-1], fit[0]))
+            for iii, (ic, fit) in enumerate(data.cycles_lin_fits):
+                strain = data.strain[data.cycles[ic]]
+                fd.write('%d, %.5e, %.5e, %.5e'
+                         % (ic, strain[0], strain[-1], fit[0]))
 
-            cc = '\n' if (iii + 1) == len(data.cycles_lin_fits) else ', '
-            fd.write(cc)
-
-    fd.close()
+                cc = '\n' if (iii + 1) == len(data.cycles_lin_fits) else ', '
+                fd.write(cc)
 
 def save_strain_of_stress(datas, filename='', mode='w'):
     filename = _get_filename(datas, filename, 'strain_of_stress', 'txt')
 
-    fd = open(filename, mode)
-    fd.write('# index, data name, cycle, index1, strain1, stress1, ...\n')
-    for ii, data in enumerate(datas):
-        if data.strains_of_stresses is None:
-            raise ValueError('use "find_strain_of_stress" filter!')
-        ics = 'na' if data.icycle is None else '%d' % data.icycle
-        fd.write('%d, %s, %s, ' % (ii, data.name, ics))
+    with open(filename, mode) as fd:
+        fd.write('# index, data name, cycle, index1, strain1, stress1, ...\n')
+        for ii, data in enumerate(datas):
+            if data.strains_of_stresses is None:
+                raise ValueError('use "find_strain_of_stress" filter!')
+            ics = 'na' if data.icycle is None else '%d' % data.icycle
+            fd.write('%d, %s, %s, ' % (ii, data.name, ics))
 
-        aux = []
-        for ic, (strain, stress) in enumerate(data.strains_of_stresses):
-            aux.append('%d, %.5e, %.5e' % (ic, strain, stress))
-        fd.write((', '.join(aux)) + '\n')
-
-    fd.close()
+            aux = []
+            for ic, (strain, stress) in enumerate(data.strains_of_stresses):
+                aux.append('%d, %.5e, %.5e' % (ic, strain, stress))
+            fd.write((', '.join(aux)) + '\n')
