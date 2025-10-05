@@ -3,34 +3,6 @@ import numpy as np
 import copy
 import types
 
-def import_file(filename):
-    path = os.path.dirname(filename)
-    if not path in sys.path:
-        sys.path.append(path)
-    name = os.path.splitext(os.path.basename(filename))[0]
-    mod = __import__(name)
-    return mod
-
-def assert_(condition):
-    if not condition:
-        raise ValueError('assertion failed!')
-
-def ordered_iteritems(adict):
-    keys = list(adict.keys())
-    order = np.argsort(keys)
-    for ii in order:
-        key = keys[ii]
-        yield key, adict[key]
-
-def dict_from_keys_init(keys, seq_class=None):
-
-    if seq_class is None:
-        return {}.fromkeys(keys)
-
-    out = {}
-    for key in keys:
-        out[key] = seq_class()
-    return out
 
 _dashes = '-'*50
 
