@@ -4,7 +4,9 @@ Data filters.
 import inspect
 import numpy as np
 
-from elfpy.base import output
+import soops as so
+
+from elfpy.base import type_as, output
 
 def parse_filter_pipeline(commands, get=None, name='filters', ikw=1):
     """
@@ -12,18 +14,16 @@ def parse_filter_pipeline(commands, get=None, name='filters', ikw=1):
     """
     if commands is None: return []
 
-    cmds = commands.split(':')
-
     if get is None: get = globals().get
 
     output('parsing %s...' % name)
 
     filters = []
-    for ic, cmd in enumerate(cmds):
+    for ic, cmd in enumerate(commands):
         output('cmd %d: %s' % (ic, cmd))
 
-        aux = cmd.split(',')
-        filter_name = aux[0].strip()
+        aux = so.parse_as_list(cmd)
+        filter_name = aux[0]
         filter_args = aux[1:]
 
         fun = get(filter_name)
@@ -40,27 +40,14 @@ def parse_filter_pipeline(commands, get=None, name='filters', ikw=1):
 
         # Process args after data.
         kwargs = {}
-        arg_parser = getattr(fun, '_elfpy_arg_parsers', {})
         for ia, arg in enumerate(args[ikw:]):
             if ia < len(filter_args):
-                farg = filter_args[ia].strip()
-                if arg in arg_parser:
-                    parser = arg_parser[arg]
-                    try:
-                        kwargs[arg] = parser(farg)
-
-                    except ValueError:
-                        msg = 'argument "%s" cannot be converted to %s(%s)!'
-                        raise ValueError(msg % (arg, type(defaults[ia]),
-                                                type(defaults[ia][0])))
+                farg = filter_args[ia]
+                if isinstance(farg, list):
+                    kwargs[arg] = [type_as(ii, defaults[ia][0]) for ii in farg]
 
                 else:
-                    try:
-                        kwargs[arg] = type(defaults[ia])(farg)
-
-                    except ValueError:
-                        msg = 'argument "%s" cannot be converted to %s!'
-                        raise ValueError(msg % (arg, type(defaults[ia])))
+                    kwargs[arg] = type_as(farg, defaults[ia])
 
             else:
                 kwargs[arg] = defaults[ia]
