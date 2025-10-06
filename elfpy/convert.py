@@ -1,25 +1,34 @@
 """
-Run as:
+Convert csv files.
 
-  elfpy-convert <directory name> '*.csv'
+Examples
+--------
+
+Convert all csv files in a given directory 'data', put results to
+data-converted::
+
+    elfpy-convert data
 """
-import os
-import sys
-import fnmatch
+import os.path as op
+from functools import partial
 
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def get_files(root_dir, pattern):
-    for dirpath, dirnames, filenames in os.walk(root_dir):
-        for filename in sorted(fnmatch.filter(filenames, pattern)):
-            yield os.path.join(dirpath, filename)
+import soops as so
+
+opts = so.Struct(
+    pattern = ('*.csv', 'pattern of data file names'),
+    output_dir = ([None, ''],
+                  'output directory [default: <data_dir>-converted]'),
+    data_dir = (None, 'csv data directory'),
+)
 
 def load(filename):
     df = pd.read_csv(filename, skiprows=5)
     df = df.rename(columns=lambda x: x.strip())
-    dirname, name = os.path.split(filename)
+    dirname, name = op.split(filename)
     return df, dirname, name[:2]
 
 def convert(df_in):
@@ -32,34 +41,42 @@ def convert(df_in):
     df['Displacement [mm]'] = df_in['X1Disp mm'] + df_in['X2Disp mm']
     df['Elongation [mm]'] = df['Displacement [mm]'] - df['Displacement [mm]'][0]
 
-    #df = df.set_index('Time [s]')
-
     return df
 
-def main():
-    args = sys.argv[1:]
+def parse_args(args=None):
+    from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
-    print(args)
+    parser = ArgumentParser(description=__doc__,
+                            formatter_class=RawDescriptionHelpFormatter)
+    so.build_arg_parser(parser, opts)
+    options = parser.parse_args(args=args)
+
+    if options.output_dir is None:
+        options.output_dir = op.dirname(options.data_dir) + '-converted'
+
+    return options
+
+def main():
+    options = parse_args()
+
+    so.ensure_path(options.output_dir + op.sep)
+    inodir = partial(op.join, options.output_dir)
 
     out = pd.DataFrame(columns=['Name', 'Max. force', 'Displacement', 'Time'])
     dgroups = {}
-    for ii, filename in enumerate(sorted(get_files(args[0], args[1]))):
+    for ii, filename in enumerate(sorted(
+            so.locate_files(options.pattern, root_dir=options.data_dir)
+    )):
+        filename = op.relpath(filename)
         print(filename)
 
         df, dirname, group = load(filename)
         df = convert(df)
 
-        oname = 'new-' + filename
-        if not os.path.exists(os.path.dirname(oname)):
-            os.makedirs(os.path.dirname(oname))
+        oname = inodir(op.basename(filename))
         with open(oname, 'w') as fd:
             fd.write('\n')
             df.to_csv(fd, float_format='%.6f')
-
-        #print(df.head())
-
-        #df.plot(x='Time [s]')
-        #plt.show()
 
         imax = df['Force [N]'].argmax()
         row = df.loc[imax]
@@ -68,32 +85,29 @@ def main():
 
         groups = dgroups.setdefault(dirname, {})
         datas = groups.setdefault(group, {})
-        datas[os.path.basename(filename)] = df
+        datas[op.basename(filename)] = df
 
     print(out)
-    out.to_csv('results.csv')
+    out.to_csv(inodir('max-forces.csv'))
 
-    fig = plt.figure(1)
-    fig.clf()
-    ax = fig.gca()
+    fig, ax = plt.subplots()
     ax.plot(out['Displacement'], ls='', marker='o', label='Displacement')
     ax.plot(out['Max. force'], ls='', marker='o', label='Max. force')
     ax.grid()
     ax.set_xticks(np.arange(len(out)))
-    ax.set_xticklabels(map(os.path.basename, out['Name']))
+    ax.set_xticklabels(map(op.basename, out['Name']))
     for tick in ax.get_xticklabels():
         tick.set_rotation(90)
     ax.legend()
     plt.tight_layout()
 
-    figname = 'max_forces.png'
-    fig.savefig(figname, bbox_inches='tight')
+    figname = 'max-forces.png'
+    fig.savefig(inodir(figname), bbox_inches='tight')
 
+    fig, ax = plt.subplots()
     for dirname, groups in sorted(dgroups.items()):
         for group, dfs in sorted(groups.items()):
-            fig = plt.figure(1)
-            fig.clf()
-            ax = fig.gca()
+            ax.cla()
             colors = plt.cm.viridis(np.linspace(0, 1, len(dfs) + 1))
             for ii, (name, df) in enumerate(sorted(dfs.items())):
                 print(dirname, group, name)
@@ -105,8 +119,8 @@ def main():
             ax.set_title(dirname)
             plt.tight_layout()
 
-            figname = dirname.replace(os.path.sep, '_') + '_' + group + '.png'
-            fig.savefig(figname, bbox_inches='tight')
+            figname = dirname.replace(op.sep, '_') + '_' + group + '.png'
+            fig.savefig(inodir(figname), bbox_inches='tight')
 
 if __name__ == '__main__':
     main()
