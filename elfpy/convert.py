@@ -20,6 +20,7 @@ import soops as so
 
 opts = so.Struct(
     pattern = ('*.csv', 'pattern of data file names'),
+    init_lengths = ([None, ''], 'if given, add initial lengths to this file'),
     output_dir = ([None, ''],
                   'output directory [default: <data_dir>-converted]'),
     data_dir = (None, 'csv data directory'),
@@ -71,9 +72,18 @@ def main():
         print(filename)
 
         df, dirname, group = load(filename)
+
+        basename = op.basename(filename)
+        if options.init_lengths:
+            key = op.splitext(basename)[0]
+            length = df.loc[0, 'X1Disp mm'] + df.loc[0, 'X2Disp mm']
+            print(f'{key}: initial length: {length}')
+            with open(options.init_lengths, 'a') as fd:
+                fd.write(f'{key} {length:.2f}\n')
+
         df = convert(df)
 
-        oname = inodir(op.basename(filename))
+        oname = inodir(basename)
         with open(oname, 'w') as fd:
             fd.write('\n')
             df.to_csv(fd, float_format='%.6f')
