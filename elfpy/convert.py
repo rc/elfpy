@@ -74,7 +74,9 @@ def main():
 
         df = machine.convert(mdf)
 
-        df.to_csv(inodir(basename), float_format='%.6f')
+        with open(inodir(basename), 'w') as fd:
+            fd.write(f'converted from: {filename}\n')
+            df.to_csv(fd, float_format='%.6f', index_label='Index')
 
         imax = df['Force [N]'].argmax()
         row = df.loc[imax]
