@@ -161,7 +161,7 @@ def read_all_data(filenames, options):
 
     return datas
 
-def run_pipeline(filters, plots, saves, datas, cmdl_options):
+def run_pipeline(filters, plots, saves, datas, options):
     """
     Apply filters and then plots to datas.
     """
@@ -213,7 +213,7 @@ def run_pipeline(filters, plots, saves, datas, cmdl_options):
         output('...done')
 
         if is_legend:
-            plt.legend(loc=cmdl_options.legend_location)
+            plt.legend(loc=options.legend_location)
 
     for ii, save in enumerate(saves):
         fun, kwargs = save
