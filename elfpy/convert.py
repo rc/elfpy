@@ -18,31 +18,18 @@ import matplotlib.pyplot as plt
 
 import soops as so
 
+from .devices import TestingMachine
+
 opts = so.Struct(
+    machine = ('mtl32_2020', 'measurement machine name',
+                    dict(metavar='NAME')),
     pattern = ('*.csv', 'pattern of data file names'),
-    init_lengths = ([None, ''], 'if given, add initial lengths to this file'),
+    init_lengths = ([None, ''], 'if given, add initial lengths to this file',
+                    dict(metavar='FILENAME')),
     output_dir = ([None, ''],
                   'output directory [default: <data_dir>-converted]'),
     data_dir = (None, 'csv data directory'),
 )
-
-def load(filename):
-    df = pd.read_csv(filename, skiprows=5)
-    df = df.rename(columns=lambda x: x.strip())
-    dirname, name = op.split(filename)
-    return df, dirname, name[:2]
-
-def convert(df_in):
-    df = pd.DataFrame()
-    df['Time [s]'] = df_in['Time sec']
-    df['Cycle'] = df_in['CY-X1']
-    df['Force1 [N]'] = df_in['X1L N']
-    df['Force2 [N]'] = df_in['X2L N']
-    df['Force [N]'] = np.minimum(df['Force1 [N]'], df['Force2 [N]'])
-    df['Displacement [mm]'] = df_in['X1Disp mm'] + df_in['X2Disp mm']
-    df['Elongation [mm]'] = df['Displacement [mm]'] - df['Displacement [mm]'][0]
-
-    return df
 
 def parse_args(args=None):
     from argparse import ArgumentParser, RawDescriptionHelpFormatter
@@ -63,6 +50,8 @@ def main():
     so.ensure_path(options.output_dir + op.sep)
     inodir = partial(op.join, options.output_dir)
 
+    machine = TestingMachine.any_by_name(options.machine)
+
     out = pd.DataFrame(columns=['Name', 'Max. force', 'Displacement', 'Time'])
     dgroups = {}
     for ii, filename in enumerate(sorted(
@@ -71,22 +60,21 @@ def main():
         filename = op.relpath(filename)
         print(filename)
 
-        df, dirname, group = load(filename)
+        mdf = machine.read_data(filename)
+        dirname, name = op.split(filename)
+        group = name[:2]
 
         basename = op.basename(filename)
         if options.init_lengths:
             key = op.splitext(basename)[0]
-            length = df.loc[0, 'X1Disp mm'] + df.loc[0, 'X2Disp mm']
+            length = machine.get_init_length(mdf)
             print(f'{key}: initial length: {length}')
             with open(options.init_lengths, 'a') as fd:
                 fd.write(f'{key} {length:.2f}\n')
 
-        df = convert(df)
+        df = machine.convert(mdf)
 
-        oname = inodir(basename)
-        with open(oname, 'w') as fd:
-            fd.write('\n')
-            df.to_csv(fd, float_format='%.6f')
+        df.to_csv(inodir(basename), float_format='%.6f')
 
         imax = df['Force [N]'].argmax()
         row = df.loc[imax]
