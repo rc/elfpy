@@ -92,7 +92,6 @@ Let us assume that the measurements are in text files in the data/ directory.
 
     # End of example command file.
 """
-from argparse import ArgumentParser, RawDescriptionHelpFormatter
 import glob
 import copy
 import matplotlib.pyplot as plt
@@ -104,6 +103,41 @@ from elfpy.filters import parse_filter_pipeline, list_commands
 from elfpy.dataio import read_file_info, Data
 import elfpy.dataio as dataio
 import elfpy.plots as pl
+
+opts = so.Struct(
+    list = (False, 'list all available filters, plots and save commands'),
+    separator = ('\s+', 'CSV data separator character(s)'),
+    header_rows = (1, 'number of data header rows'),
+    legend_location = (0, 'matplotlib legend location code'),
+    columns = ('time=2,displ=1,force=0,cycle=None',
+               'indices of time, displacement, force and cycle columns in data',
+               dict(metavar='KEY=VAL,...')),
+    filters = ([None, ''], 'filters that should be applied to data files',
+               dict(metavar='FILTER1,ARG1,...,ARGN:FILTER2,...')),
+    plots = ([None, ''], 'plots that should be created for data files',
+             dict(metavar='PLOT1,FIG_NUM,ARG1,...,ARGN:PLOT2,...')),
+    saves = ([None, ''], 'commands to save results into files',
+             dict(metavar='SAVE1,ARG1,...,ARGN:SAVE2,...')),
+    init_lengths = ('init_lengths.txt',
+                    """text file with initial specimen lengths
+                    (<data file name> <value> per line, # is comment)""",
+                    dict(metavar='FILENAME')),
+    cross_sections = ('cross_sections.txt',
+                      """text file with initial specimen cross sections
+                      (<data file name> <value> per line, # is comment)""",
+                      dict(metavar='FILENAME')),
+    plot_rc_params = ('', 'matplotlib resources',
+                      dict(metavar='KEY=VAL,...')),
+    show = (True, 'do not show figures'),
+    command_file = ([None, ''],
+                    """file with filter commands followed by plot commands.
+                    The two groups have to be separated by a line with one or
+                    several '-' characters. The filter commands are pre-pended
+                    to commands passed using --filters. The plot commands are
+                    pre-pended to commands passed using --plots.""",
+                    dict(metavar='FILENAME')),
+    filenames = (None, 'files with measurement data', dict(nargs='*')),
+)
 
 def get_commands(options):
     """
@@ -144,8 +178,8 @@ def get_commands(options):
     return filter_cmds, plot_cmds, save_cmds
 
 def read_all_data(filenames, options):
-    areas = read_file_info(options.cross_sections_filename)
-    lengths = read_file_info(options.init_lengths_filename)
+    areas = read_file_info(options.cross_sections)
+    lengths = read_file_info(options.init_lengths)
 
     datas = []
     cols = options.columns
@@ -225,102 +259,39 @@ def run_pipeline(filters, plots, saves, datas, options):
 
         output('...done')
 
-_help = {
-    'filenames' : 'files with measurement data',
-    'list' : 'list all available filters, plots and save commands',
-    'separator' : 'data separator character [default: %(default)s]',
-    'header_rows' : 'number of data header rows [default: %(default)s]',
-    'legend_location' : 'matplotlib legend location code'
-    ' [default: %(default)s]',
-    'columns' : 'indices of time, displacement, force and cycle columns'
-    ' in data [default: %(default)s]',
-    'filters' : 'filters that should be applied to data files',
-    'plots' : 'plots that should be created for data files',
-    'saves' : 'commands to save results into files',
-    'init_lengths' : 'text file with initial specimen lengths'
-    ' (<data file name> <value> per line, # is comment) [default: %(default)s]',
-    'cross_sections' : 'text file with initial specimen cross sections'
-    ' (<data file name> <value> per line, # is comment) [default: %(default)s]',
-    'rc' : 'matplotlib resources',
-    'no_show' : 'do not show figures',
-    'command_file' : 'file with filter commands followed by plot commands.'
-    ' The two groups has to be separated by a line with one or several "-"'
-    ' characters. The filter commands are pre-pended to commands passed'
-    ' using --filters. The plot commands are pre-pended to commands passed'
-    ' using --plots.',
-}
+def parse_args(args=None):
+    from argparse import ArgumentParser, RawDescriptionHelpFormatter
+
+    parser = ArgumentParser(description=__doc__,
+                            formatter_class=RawDescriptionHelpFormatter)
+    so.build_arg_parser(parser, opts, aliases=dict(
+        list='-l',
+        filters='-f',
+        plots='-p',
+        saves='-s',
+        show='-n',
+        command_file='-c',
+    ))
+    options = parser.parse_args(args=args)
+    options.columns = so.parse_as_dict(options.columns)
+    options.plot_rc_params = so.parse_as_dict(options.plot_rc_params)
+
+    return parser, options
 
 def main():
     output.level = 0
 
-    parser = ArgumentParser(description=__doc__.rstrip(),
-                            formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('filenames', metavar='filename', nargs='*',
-                        help=_help['filenames'])
-    parser.add_argument('-l', '--list',
-                        action='store_true', dest='list',
-                        default=False, help=_help['list'])
-    parser.add_argument('--separator',
-                        metavar='separator',
-                        action='store', dest='separator',
-                        default=' ', help=_help['separator'])
-    parser.add_argument('--header-rows',
-                        metavar='int', type=int,
-                        action='store', dest='header_rows',
-                        default=1, help=_help['header_rows'])
-    parser.add_argument('--legend-location',
-                        metavar='int', type=int,
-                        action='store', dest='legend_location', default=0,
-                        help=_help['legend_location'])
-    parser.add_argument('--columns',
-                        metavar='key=val,...', dest='columns',
-                        default='time=2,displ=1,force=0,cycle=None',
-                        help=_help['columns'])
-    parser.add_argument('-f', '--filters',
-                        metavar='filter1,arg1,...,argN:filter2,...',
-                        action='store', dest='filters',
-                        default=None, help=_help['filters'])
-    parser.add_argument('-p', '--plots',
-                        metavar='plot1,fig_num,arg1,...,argN:plot2,...',
-                        action='store', dest='plots',
-                        default=None, help=_help['plots'])
-    parser.add_argument('-s', '--saves',
-                        metavar='save1,arg1,...,argN:save2,...',
-                        action='store', dest='saves',
-                        default=None, help=_help['saves'])
-    parser.add_argument('--init-lengths',
-                        metavar='filename', action='store',
-                        dest='init_lengths_filename',
-                        default='init_lengths.txt',
-                        help=_help['init_lengths'])
-    parser.add_argument('--cross-sections',
-                        metavar='filename', action='store',
-                        dest='cross_sections_filename',
-                        default='cross_sections.txt',
-                        help=_help['cross_sections'])
-    parser.add_argument('--rc', metavar='key=val;...', dest='rc',
-                        default='', help=_help['rc'])
-    parser.add_argument('-n', '--no-show',
-                        action='store_false', dest='show',
-                        default=True, help=_help['no_show'])
-    parser.add_argument('-c', '--command-file',
-                        metavar='filename',
-                        action='store', dest='command_file',
-                        default=None, help=_help['command_file'])
-    cmdl_options = parser.parse_args()
-
-    cmdl_options.columns = so.parse_as_dict(cmdl_options.columns)
-    cmdl_options.rc = so.parse_as_dict(cmdl_options.rc)
+    parser, options = parse_args()
 
     expanded_args = []
-    for arg in cmdl_options.filenames:
+    for arg in options.filenames:
         expanded_args.extend(glob.glob(arg))
     args = expanded_args
 
     vv = vars(dataio)
     vv.update(vars(pl))
 
-    if cmdl_options.list:
+    if options.list:
         list_commands()
         list_commands(namespace=vars(pl), name='plots')
         list_commands(namespace=vv, name='saves', arg0_name='datas')
@@ -332,19 +303,19 @@ def main():
 
     plt.rcParams['font.size'] = 12
     plt.rcParams['lines.linewidth'] = 1
-    plt.rcParams.update(cmdl_options.rc)
+    plt.rcParams.update(options.plot_rc_params)
 
-    filter_cmds, plot_cmds, save_cmds = get_commands(cmdl_options)
+    filter_cmds, plot_cmds, save_cmds = get_commands(options)
 
     filters = parse_filter_pipeline(filter_cmds)
     plots = parse_filter_pipeline(plot_cmds, get=vars(pl).get, name='plots')
     saves = parse_filter_pipeline(save_cmds, get=vv.get, name='saves')
-    if cmdl_options.show:
+    if options.show:
         saves = saves + [(pl.show, {})]
 
-    datas = read_all_data(args, cmdl_options)
+    datas = read_all_data(args, options)
 
-    run_pipeline(filters, plots, saves, datas, cmdl_options)
+    run_pipeline(filters, plots, saves, datas, options)
 
 if __name__ == '__main__':
     main()
