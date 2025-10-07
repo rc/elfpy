@@ -267,7 +267,7 @@ def main():
     parser.add_argument('--header-rows',
                         metavar='int', type=int,
                         action='store', dest='header_rows',
-                        default=2, help=_help['header_rows'])
+                        default=1, help=_help['header_rows'])
     parser.add_argument('--legend-location',
                         metavar='int', type=int,
                         action='store', dest='legend_location', default=0,
