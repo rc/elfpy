@@ -8,6 +8,9 @@ class MTL32_2020(TestingMachine):
     TestResources Inc. MTL32_2020 controller.
     """
     name = 'mtl32_2020'
+
+    separator = ','
+    # Workaround for malfunctioning Force1 - use Force2.
     converted_columns = dict(time=1, displ=7, force=4, cycle=2)
 
     def read_data(self, filename):
