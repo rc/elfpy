@@ -1,3 +1,5 @@
+import os.path as op
+
 from soops import locate_files, load_classes, Struct
 
 class TestingMachine(Struct):
@@ -8,9 +10,13 @@ class TestingMachine(Struct):
         """
         Create an instance of a Machine subclass according to its name.
         """
-        files = locate_files('tm_*.py')
-        table = load_classes(files, [TestingMachine], package_name='elfpy')
-        return table[name](**kwargs)
+        return devices_table[name](**kwargs)
 
     def get_column(self, key):
         return self.converted_columns.get(key, None)
+
+filedir = op.dirname(__file__)
+devices_table = load_classes(locate_files(op.join(filedir, 'tm_*.py')),
+                             [TestingMachine],
+                             package_name='elfpy')
+del filedir
