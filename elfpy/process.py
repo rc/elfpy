@@ -103,39 +103,53 @@ from elfpy.filters import parse_filter_pipeline, list_commands
 from elfpy.dataio import read_file_info, Data
 import elfpy.dataio as dataio
 import elfpy.plots as pl
+from .devices import devices_table
 
 opts = so.Struct(
     list = (False, 'list all available filters, plots and save commands'),
-    separator = ('\s+', 'CSV data separator character(s)'),
+    machine = (tuple(devices_table.keys()),
+               'measurement machine name. Determines data columns.'),
+    columns = (
+        [None, ''],
+        """indices of time, displacement, force and cycle columns in data.
+        If given, overrides default machine settings.""",
+        dict(metavar='KEY=VAL,...')
+    ),
+    separator = (
+        [None, ','],
+        """CSV data separator character(s), use '\s+' for whitespace. If given,
+        overrides default machine settings. """
+    ),
     header_rows = (1, 'number of data header rows'),
-    legend_location = (0, 'matplotlib legend location code'),
-    columns = ('time=2,displ=1,force=0,cycle=None',
-               'indices of time, displacement, force and cycle columns in data',
-               dict(metavar='KEY=VAL,...')),
     filters = ([None, ''], 'filters that should be applied to data files',
                dict(metavar='FILTER1,ARG1,...,ARGN:FILTER2,...')),
     plots = ([None, ''], 'plots that should be created for data files',
              dict(metavar='PLOT1,FIG_NUM,ARG1,...,ARGN:PLOT2,...')),
     saves = ([None, ''], 'commands to save results into files',
              dict(metavar='SAVE1,ARG1,...,ARGN:SAVE2,...')),
-    init_lengths = ('init_lengths.txt',
-                    """text file with initial specimen lengths
-                    (<data file name> <value> per line, # is comment)""",
-                    dict(metavar='FILENAME')),
-    cross_sections = ('cross_sections.txt',
-                      """text file with initial specimen cross sections
-                      (<data file name> <value> per line, # is comment)""",
-                      dict(metavar='FILENAME')),
-    plot_rc_params = ('', 'matplotlib resources',
-                      dict(metavar='KEY=VAL,...')),
+    init_lengths = (
+        'init_lengths.txt',
+        """text file with initial specimen lengths
+        (<data file name> <value> per line, # is comment)""",
+        dict(metavar='FILENAME')
+    ),
+    cross_sections = (
+        'cross_sections.txt',
+        """text file with initial specimen cross sections
+        (<data file name> <value> per line, # is comment)""",
+        dict(metavar='FILENAME')
+    ),
+    legend_location = (0, 'matplotlib legend location code'),
+    plot_rc_params = ('', 'matplotlib resources', dict(metavar='KEY=VAL,...')),
     show = (True, 'do not show figures'),
-    command_file = ([None, ''],
-                    """file with filter commands followed by plot commands.
-                    The two groups have to be separated by a line with one or
-                    several '-' characters. The filter commands are pre-pended
-                    to commands passed using --filters. The plot commands are
-                    pre-pended to commands passed using --plots.""",
-                    dict(metavar='FILENAME')),
+    command_file = (
+        [None, ''],
+        """file with filter commands followed by plot commands. The two groups
+        have to be separated by a line with one or several '-' characters. The
+        filter commands are pre-pended to commands passed using --filters. The
+        plot commands are pre-pended to commands passed using --plots.""",
+        dict(metavar='FILENAME')
+    ),
     filenames = (None, 'files with measurement data', dict(nargs='*')),
 )
 
@@ -273,8 +287,15 @@ def parse_args(args=None):
         command_file='-c',
     ))
     options = parser.parse_args(args=args)
-    options.columns = so.parse_as_dict(options.columns)
     options.plot_rc_params = so.parse_as_dict(options.plot_rc_params)
+    if options.columns is not None:
+        options.columns = so.parse_as_dict(options.columns)
+
+    else:
+        options.columns = devices_table[options.machine].converted_columns
+
+    if options.separator is None:
+        options.separator = devices_table[options.machine].separator
 
     return parser, options
 
