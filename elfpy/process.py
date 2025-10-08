@@ -142,6 +142,8 @@ opts = so.Struct(
     legend_location = (0, 'matplotlib legend location code'),
     plot_rc_params = ('', 'matplotlib resources', dict(metavar='KEY=VAL,...')),
     show = (True, 'do not show figures'),
+    shell = (False, 'run shell'),
+    debug = (False, 'debug on error'),
     command_file = (
         [None, ''],
         """file with filter commands followed by plot commands. The two groups
@@ -303,6 +305,8 @@ def main():
     output.level = 0
 
     parser, options = parse_args()
+    if options.debug:
+        from soops import debug; debug()
 
     expanded_args = []
     for arg in options.filenames:
@@ -337,6 +341,9 @@ def main():
     datas = read_all_data(args, options)
 
     run_pipeline(filters, plots, saves, datas, options)
+
+    if options.shell:
+        from soops import shell; shell()
 
 if __name__ == '__main__':
     main()
