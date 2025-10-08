@@ -23,7 +23,7 @@ import matplotlib.pyplot as plt
 
 import soops as so
 
-from .devices import devices_table, TestingMachine
+from elfpy.devices import devices_table, TestingMachine
 
 opts = so.Struct(
     machine = (tuple(devices_table.keys()), 'measurement machine name'),
