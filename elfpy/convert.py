@@ -4,10 +4,15 @@ Convert csv files.
 Examples
 --------
 
-Convert all csv files in a given directory 'data', put results to
-data-converted::
+- Convert all csv files in a given directory 'data', put results to
+  data-converted::
 
-    elfpy-convert data
+    elfpy-convert data/
+
+- As above and save initial lengths into a file in the converted data
+  directory::
+
+    elfpy-convert data/ --init-lengths=data-converted/tmp-lengths.txt
 """
 import os.path as op
 from functools import partial
