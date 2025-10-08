@@ -103,7 +103,7 @@ from elfpy.filters import parse_filter_pipeline, list_commands
 from elfpy.dataio import read_file_info, Data
 import elfpy.dataio as dataio
 import elfpy.plots as pl
-from .devices import devices_table
+from elfpy.devices import devices_table
 
 opts = so.Struct(
     list = (False, 'list all available filters, plots and save commands'),
