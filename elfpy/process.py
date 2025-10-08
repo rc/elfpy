@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""
+r"""
 Analyze results of mechanical measurements by applying filters, plots, and save
 commands to data files. The available commands can be listed using the --list
 (or -l) option.
@@ -117,7 +117,7 @@ opts = so.Struct(
     ),
     separator = (
         [None, ','],
-        """CSV data separator character(s), use '\s+' for whitespace. If given,
+        r"""CSV data separator character(s), use '\s+' for whitespace. If given,
         overrides default machine settings. """
     ),
     header_rows = (1, 'number of data header rows'),
