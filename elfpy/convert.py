@@ -18,11 +18,10 @@ import matplotlib.pyplot as plt
 
 import soops as so
 
-from .devices import TestingMachine
+from .devices import devices_table, TestingMachine
 
 opts = so.Struct(
-    machine = ('mtl32_2020', 'measurement machine name',
-                    dict(metavar='NAME')),
+    machine = (tuple(devices_table.keys()), 'measurement machine name'),
     pattern = ('*.csv', 'pattern of data file names'),
     init_lengths = ([None, ''], 'if given, add initial lengths to this file',
                     dict(metavar='FILENAME')),
