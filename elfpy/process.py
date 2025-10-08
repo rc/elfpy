@@ -59,12 +59,12 @@ Let us assume that the measurements are in text files in the data/ directory.
 
 - Plot filtered and raw stress and strain::
 
-    elfpy-process data/PER_*.txt -f "smooth_strain : smooth_stress" -p "use_markers, 0 : plot_strain_time, 1, 0, filtered : plot_raw_strain_time, 1, 1, raw : plot_stress_time, 2, 0, filtered : plot_raw_stress_time, 2, 1, raw"
+    elfpy-process data/PER_*.txt --separator='\s+' --columns='time=2,displ=1,force=0,cycle=None' -f "smooth_strain : smooth_stress" -p "use_markers, 0 : plot_strain_time, 1, 0, filtered : plot_raw_strain_time, 1, 1, raw : plot_stress_time, 2, 0, filtered : plot_raw_stress_time, 2, 1, raw"
 
 - Detect ultimate stress and strain in the last strain load cycle, plot it on a
   stress-strain curve and save it to a text file::
 
-    elfpy-process data/PER_*.txt -f "smooth_strain : smooth_stress : select_cycle, -1 : get_ultimate_values" -p "use_markers, 0 : plot_stress_strain, 1, 0, 'stress-strain' : mark_ultimate_values, 1, 1" -s "save_ultimate_values : save_figure, 1" -n
+    elfpy-process data/PER_*.txt --separator='\s+' --columns='time=2,displ=1,force=0,cycle=None' -f "smooth_strain : smooth_stress : select_cycle, -1 : get_ultimate_values" -p "use_markers, 0 : plot_stress_strain, 1, 0, 'stress-strain' : mark_ultimate_values, 1, 1" -s "save_ultimate_values : save_figure, 1" -n
 
 - Corresponding command file::
 
