@@ -13,6 +13,13 @@ class MTL32_2020(TestingMachine):
     # Workaround for malfunctioning Force1 - use Force2.
     converted_columns = dict(time=1, displ=7, force=4, cycle=2)
 
+    @staticmethod
+    def info():
+        out = [f"machine '{__class__.name}':"]
+        out += [f"- separator: '{__class__.separator}'"]
+        out += [f'- converted columns: {__class__.converted_columns}']
+        return '\n'.join(out)
+
     def read_data(self, filename):
         mdf = pd.read_csv(filename, skiprows=5)
         mdf = mdf.rename(columns=lambda x: x.strip())
