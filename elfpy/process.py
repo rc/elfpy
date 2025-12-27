@@ -107,6 +107,8 @@ from elfpy.devices import devices_table
 
 opts = so.Struct(
     list = (False, 'list all available filters, plots and save commands'),
+    info = ([None, ''],
+            'print information about a measurement machine'),
     machine = (tuple(devices_table.keys()),
                'measurement machine name. Determines data columns.'),
     columns = (
@@ -320,6 +322,15 @@ def main():
         list_commands()
         list_commands(namespace=vars(pl), name='plots')
         list_commands(namespace=vv, name='saves', arg0_name='datas')
+        return
+
+    if options.info:
+        if options.info in devices_table:
+            output(devices_table[options.info].info())
+
+        else:
+            output(f'supported machine names: {list(devices_table.keys())}')
+
         return
 
     if len(args) == 0:
