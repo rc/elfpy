@@ -81,7 +81,7 @@ def list_commands(namespace=None, name='filters', arg0_name='data', ikw=1):
         if not len(args) or (args[0] != arg0_name): continue
 
         if defaults is not None:
-            args_str = ', '.join(['%s=%s' % (args[ii], defaults[ii - ikw])
+            args_str = ', '.join(['%s=%r' % (args[ii], defaults[ii - ikw])
                                   for ii in range(ikw, len(args))])
         else:
             args_str = ''
