@@ -17,8 +17,20 @@ deps = dict(
     cycles_lengths = [
         'use_data_cycles',
     ],
+    icycle = [
+        'select_cycle',
+    ],
     irange = [
         'select_cycle',
+    ],
+    iult = [
+        'get_ultimate_values',
+    ],
+    ultimate_strain = [
+        'get_ultimate_values',
+    ],
+    ultimate_stress = [
+        'get_ultimate_values',
     ],
     strain_regions = [
         'detect_linear_regions',
@@ -35,6 +47,9 @@ deps = dict(
     ],
     stress_regions_iranges = [
         'set_stress_regions_list',
+    ],
+    strains_of_stresses = [
+        'find_strain_of_stress',
     ],
     strain_regions_lin_fits = [
         'fit_stress_strain',
