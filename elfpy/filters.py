@@ -8,6 +8,46 @@ import soops as so
 
 from elfpy.base import type_as, output
 
+deps = dict(
+    cycles = [
+        'use_data_cycles',
+        'detect_strain_cycles',
+        'detect_strain_cycles2',
+    ],
+    cycles_lengths = [
+        'use_data_cycles',
+    ],
+    irange = [
+        'select_cycle',
+    ],
+    strain_regions = [
+        'detect_linear_regions',
+        'set_strain_regions',
+        'set_strain_regions_list',
+    ],
+    strain_regions_iranges = [
+        'detect_linear_regions',
+        'set_strain_regions',
+        'set_strain_regions_list',
+    ],
+    stress_regions = [
+        'set_stress_regions_list',
+    ],
+    stress_regions_iranges = [
+        'set_stress_regions_list',
+    ],
+    strain_regions_lin_fits = [
+        'fit_stress_strain',
+    ],
+    stress_regions_lin_fits = [
+        'fit_stress_strain',
+    ],
+    cycles_lin_fits = [
+        'fit_stress_strain_cycles',
+        'fit_stress_strain_cycles_list',
+    ],
+)
+
 def parse_filter_pipeline(commands, get=None, name='filters', ikw=1):
     """
     Parse commands string defining a pipeline.
