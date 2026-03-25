@@ -341,8 +341,8 @@ def select_cycle(data, cycle=-1, min_length=0):
 
     Notes
     -----
-    Calls automatically :func:`detect_strain_cycles()` if needed. Sets `irange`
-    attribute of `data`.
+    Calls automatically :func:`detect_strain_cycles()` if needed. Sets
+    `icycle`, `irange` attributes of `data`.
     """
     if not len(data.cycles):
         data = detect_strain_cycles(data)
@@ -385,6 +385,10 @@ def select_cycle(data, cycle=-1, min_length=0):
 def get_ultimate_values(data, eps=0.1):
     """
     Get ultimate stress and strain.
+
+    Notes
+    -----
+    Sets `iult`, `ultimate_strain`, `ultimate_stress` attributes of `data`.
     """
     stress = data.stress
     dstress = np.diff(stress, n=1)/ np.diff(data.strain, n=1)
@@ -591,6 +595,10 @@ def find_strain_of_stress(data, stresses=[0.0]):
     """
     For every given stress value, find the smallest strain on the stress-strain
     curve that it (approximately) corresponds to.
+
+    Notes
+    -----
+    Sets `strains_of_stresses` attribute of `data`.
     """
     stress = data.stress
     data.strains_of_stresses = []
