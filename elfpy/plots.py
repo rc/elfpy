@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from elfpy.base import requires
 from elfpy.dataio import _get_filename
+from elfpy.filters import deps
 
 class Cycler(list):
     def __init__(self, sequence):
@@ -176,6 +178,7 @@ def _plot_cycles_colors(data, ax, label, ics):
         _plot_curve(ax, dx, dy, 'strain [1]', 'stress [MPa]', label=lab,
                     color=colors[ii], title='stress-strain cycles', iline=ii)
 
+@requires('cycles', deps=deps)
 def plot_cycles_colors(data, fig_num=1, ax=0, label='', odd=1, even=1,
                        cut_last=0):
     ax = _get_ax(fig_num, ax)
@@ -188,6 +191,7 @@ def plot_cycles_colors(data, fig_num=1, ax=0, label='', odd=1, even=1,
 
     return ax
 
+@requires('cycles', deps=deps)
 def plot_cycles_colors_list(data, fig_num=1, ax=0, label='', ics=[0]):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
@@ -196,6 +200,7 @@ def plot_cycles_colors_list(data, fig_num=1, ax=0, label='', ics=[0]):
 
     return ax
 
+@requires('cycles', deps=deps)
 def plot_cycles_time(data, fig_num=1, ax=0):
     ax = _get_ax(fig_num, ax)
     ymin, ymax = ax.axis()[2:]
@@ -208,6 +213,7 @@ def plot_cycles_time(data, fig_num=1, ax=0):
 
     return ax
 
+@requires('ultimate_strain', deps=deps)
 def mark_ultimate_strain(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
@@ -217,6 +223,7 @@ def mark_ultimate_strain(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+@requires('ultimate_stress', deps=deps)
 def mark_ultimate_stress(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
@@ -226,6 +233,7 @@ def mark_ultimate_stress(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+@requires('ultimate_strain', 'ultimate_stress', deps=deps)
 def mark_ultimate_values(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
@@ -255,12 +263,14 @@ def _mark_regions(data, iranges, ax, label=''):
     for ii, irange in enumerate(iranges):
         _plot_region_line(data, irange, colors[ii], 5, label)
 
+@requires('strain_regions_iranges', deps=deps)
 def mark_strain_regions(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     _mark_regions(data, data.strain_regions_iranges, ax, label)
 
     return ax
 
+@requires('stress_regions_iranges', deps=deps)
 def mark_stress_regions(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     _mark_regions(data, data.stress_regions_iranges, ax, label)
@@ -287,6 +297,7 @@ def _mark_regions_fits(data, iranges, lin_fits, ax):
         irange = iranges[ik]
         _plot_fit_line(data, irange, fit, colors[ii], 5, '%d' % ik)
 
+@requires('strain_regions_iranges', 'strain_regions_lin_fits', deps=deps)
 def mark_strain_regions_fits(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     _mark_regions_fits(data, data.strain_regions_iranges,
@@ -294,6 +305,7 @@ def mark_strain_regions_fits(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+@requires('stress_regions_iranges', 'stress_regions_lin_fits', deps=deps)
 def mark_stress_regions_fits(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     _mark_regions_fits(data, data.stress_regions_iranges,
@@ -301,6 +313,7 @@ def mark_stress_regions_fits(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+@requires('cycles', 'cycles_lin_fits', deps=deps)
 def mark_cycles_fits(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
 
@@ -311,6 +324,7 @@ def mark_cycles_fits(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+@requires('cycles_lin_fits', deps=deps)
 def plot_cycles_fits_stiffness(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)
@@ -325,6 +339,7 @@ def plot_cycles_fits_stiffness(data, fig_num=1, ax=0, label=''):
 
     return ax
 
+@requires('strains_of_stresses', deps=deps)
 def mark_strain_of_stress(data, fig_num=1, ax=0, label=''):
     ax = _get_ax(fig_num, ax)
     label = _get_label(data, label)

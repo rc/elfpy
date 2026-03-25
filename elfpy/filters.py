@@ -8,6 +8,61 @@ import soops as so
 
 from elfpy.base import type_as, output
 
+deps = dict(
+    cycles = [
+        'use_data_cycles',
+        'detect_strain_cycles',
+        'detect_strain_cycles2',
+    ],
+    cycles_lengths = [
+        'use_data_cycles',
+    ],
+    icycle = [
+        'select_cycle',
+    ],
+    irange = [
+        'select_cycle',
+    ],
+    iult = [
+        'get_ultimate_values',
+    ],
+    ultimate_strain = [
+        'get_ultimate_values',
+    ],
+    ultimate_stress = [
+        'get_ultimate_values',
+    ],
+    strain_regions = [
+        'detect_linear_regions',
+        'set_strain_regions',
+        'set_strain_regions_list',
+    ],
+    strain_regions_iranges = [
+        'detect_linear_regions',
+        'set_strain_regions',
+        'set_strain_regions_list',
+    ],
+    stress_regions = [
+        'set_stress_regions_list',
+    ],
+    stress_regions_iranges = [
+        'set_stress_regions_list',
+    ],
+    strains_of_stresses = [
+        'find_strain_of_stress',
+    ],
+    strain_regions_lin_fits = [
+        'fit_stress_strain',
+    ],
+    stress_regions_lin_fits = [
+        'fit_stress_strain',
+    ],
+    cycles_lin_fits = [
+        'fit_stress_strain_cycles',
+        'fit_stress_strain_cycles_list',
+    ],
+)
+
 def parse_filter_pipeline(commands, get=None, name='filters', ikw=1):
     """
     Parse commands string defining a pipeline.
@@ -286,8 +341,8 @@ def select_cycle(data, cycle=-1, min_length=0):
 
     Notes
     -----
-    Calls automatically :func:`detect_strain_cycles()` if needed. Sets `irange`
-    attribute of `data`.
+    Calls automatically :func:`detect_strain_cycles()` if needed. Sets
+    `icycle`, `irange` attributes of `data`.
     """
     if not len(data.cycles):
         data = detect_strain_cycles(data)
@@ -330,6 +385,10 @@ def select_cycle(data, cycle=-1, min_length=0):
 def get_ultimate_values(data, eps=0.1):
     """
     Get ultimate stress and strain.
+
+    Notes
+    -----
+    Sets `iult`, `ultimate_strain`, `ultimate_stress` attributes of `data`.
     """
     stress = data.stress
     dstress = np.diff(stress, n=1)/ np.diff(data.strain, n=1)
@@ -536,6 +595,10 @@ def find_strain_of_stress(data, stresses=[0.0]):
     """
     For every given stress value, find the smallest strain on the stress-strain
     curve that it (approximately) corresponds to.
+
+    Notes
+    -----
+    Sets `strains_of_stresses` attribute of `data`.
     """
     stress = data.stress
     data.strains_of_stresses = []
