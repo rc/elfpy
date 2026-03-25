@@ -107,6 +107,8 @@ from elfpy.devices import devices_table
 
 opts = so.Struct(
     list = (False, 'list all available filters, plots and save commands'),
+    doc = ([None, ''], 'print help message for the given command',
+           dict(metavar='<command name>')),
     info = ([None, ''],
             'print information about a measurement machine'),
     machine = (tuple(devices_table.keys()),
@@ -284,6 +286,7 @@ def parse_args(args=None):
                             formatter_class=RawDescriptionHelpFormatter)
     so.build_arg_parser(parser, opts, aliases=dict(
         list='-l',
+        doc='-d',
         filters='-f',
         plots='-p',
         saves='-s',
@@ -322,6 +325,19 @@ def main():
         list_commands()
         list_commands(namespace=vars(pl), name='plots')
         list_commands(namespace=vv, name='saves', arg0_name='datas')
+        return
+
+    if options.doc is not None:
+        import elfpy.filters as fl
+
+        funs = vars(fl)
+        funs.update(vars(dataio))
+        funs.update(vars(pl))
+
+        fun = funs.get(options.doc, None)
+        if fun is None:
+            output(f'command "{options.doc}" does not exist!')
+        help(fun)
         return
 
     if options.info:
