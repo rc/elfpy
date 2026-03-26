@@ -41,11 +41,15 @@ Usage
 
      elfpy-process -h
 
-   to get help and then::
+   to get help::
 
      elfpy-process -l
 
-   to see all available commands.
+   to see all available commands and::
+
+     elfpy-process -d <command name>
+
+   to get help on a command.
 
    Example command file::
 
