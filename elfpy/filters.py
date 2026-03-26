@@ -16,6 +16,8 @@ deps = dict(
     ],
     cycles_lengths = [
         'use_data_cycles',
+        'detect_strain_cycles',
+        'detect_strain_cycles2',
     ],
     icycle = [
         'select_cycle',
