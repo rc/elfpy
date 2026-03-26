@@ -6,7 +6,7 @@ import numpy as np
 
 import soops as so
 
-from elfpy.base import type_as, output
+from elfpy.base import requires, type_as, output
 
 deps = dict(
     cycles = [
@@ -280,6 +280,7 @@ def detect_strain_cycles2(data, eps=0.01):
     data = _update_cycles_attrs(data, cycles)
     return data
 
+@requires('cycles', 'cycles_lengths', deps=deps)
 def print_cycles_info(data):
     """
     Print various information about cycles.
@@ -323,6 +324,7 @@ def print_cycles_info(data):
 
     return data
 
+@requires('cycles', 'cycles_lengths', deps=deps)
 def remove_short_cycles(data, min_length=2):
     """
     Remove cycles with length smaller than `min_length`.
@@ -620,6 +622,14 @@ def find_strain_of_stress(data, stresses=[0.0]):
 def _fit_stress_strain(stress, strain):
     return np.polyfit(strain, stress, 1)
 
+@requires('strain_regions_iranges', deps=deps)
+def _get_strain_iranges(data):
+    return data.strain_regions_iranges
+
+@requires('stress_regions_iranges', deps=deps)
+def _get_stress_iranges(data):
+    return data.strain_regions_iranges
+
 def fit_stress_strain(data, region_kind='strain', which=[-999]):
     """
     Determine Young's modulus of elasticity in the selected regions.
@@ -632,11 +642,11 @@ def fit_stress_strain(data, region_kind='strain', which=[-999]):
     `data`, according to `region_kind`.
     """
     if region_kind == 'strain':
-        iranges = data.strain_regions_iranges
+        iranges = _get_strain_iranges(data)
         lin_fits = data.strain_regions_lin_fits = []
 
     elif region_kind == 'stress':
-        iranges = data.stress_regions_iranges
+        iranges = _get_stress_iranges(data)
         lin_fits = data.stress_regions_lin_fits = []
 
     else:
