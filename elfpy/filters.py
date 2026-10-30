@@ -168,18 +168,21 @@ def reset_stress(data):
 
     return data
 
-def set_zero_displacement_for_force(data, force=0.0):
+def set_zero_displacement_for_force(data, force=0.0, use_cycle=False):
     """
     Set zero displacement for the given force.
     """
     data._strain = None
 
-    ii = np.where(data.raw_force >= force)[0][0]
-    u1 = data.raw_displ[ii]
-    f1 = data.raw_force[ii] - force
+    raw_displ = data.raw_displ[data.irange] if use_cycle else data.raw_displ
+    raw_force = data.raw_force[data.irange] if use_cycle else data.raw_force
+
+    ii = np.where(raw_force >= force)[0][0]
+    u1 = raw_displ[ii]
+    f1 = raw_force[ii] - force
     if f1 > 0.0:
-        u0 = data.raw_displ[ii - 1]
-        f0 = data.raw_force[ii - 1] - force
+        u0 = raw_displ[ii - 1]
+        f0 = raw_force[ii - 1] - force
 
         uu = (f1 * u0 - f0 * u1) / (f1 - f0)
 
