@@ -200,6 +200,39 @@ def set_zero_displacement_for_force(data, force=0.0):
 
     return data
 
+def set_zero_force_for_displacement(data, displ=0.0, use_cycle=False):
+    """
+    Set zero force for the given displacement.
+    """
+    data._stress = None
+
+    raw_displ = data.raw_displ[data.irange] if use_cycle else data.raw_displ
+    raw_force = data.raw_force[data.irange] if use_cycle else data.raw_force
+
+    ii = np.where(raw_displ >= displ)[0][0]
+    f1 = raw_force[ii]
+    u1 = raw_displ[ii] - displ
+
+    if u1 > 0.0:
+        f0 = raw_force[ii - 1]
+        u0 = raw_displ[ii - 1] - displ
+
+        ff = (u1 * f0 - u0 * f1) / (u1 - u0)
+
+    else:
+        ff = f1
+
+    data.raw_force = data.raw_force - ff
+    data._raw_stress = data.raw_force / data.area0
+
+    output('zero force set for displacement %f, index %d, F=%f'
+           % (displ, ii, ff))
+    output('new f0 = %f, new f1 = %f, u0 = %f, u1 = %f'
+           % (data.raw_force[ii-1], data.raw_force[ii],
+              data.raw_displ[ii-1], data.raw_displ[ii]))
+
+    return data
+
 def _update_cycles_attrs(data, cycles):
     data.cycles = np.array(cycles)
     data.cycles_lengths = np.array([cc.stop - cc.start for cc in data.cycles])
