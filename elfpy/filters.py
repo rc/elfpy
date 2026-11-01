@@ -752,6 +752,18 @@ def eval_model_neohook(strain, mu):
 
 eval_model_neohook.n_pars = 1
 
+def eval_model_ogden_2t(strain, mu1, alpha1, mu2, alpha2):
+    """
+    Nominal uniaxial stress for the two-term incompressible Ogden model.
+    """
+    stretch = 1.0 + strain
+    return (
+        + mu1 * (stretch**(alpha1 - 1.0) - stretch**(-alpha1 / 2.0 - 1.0))
+        + mu2 * (stretch**(alpha2 - 1.0) - stretch**(-alpha2 / 2.0 - 1.0))
+    )
+
+eval_model_ogden_2t.n_pars = 4
+
 def fit_model(data, model='neohook', pars0=None, bounds=None, **kwargs):
     from scipy.optimize import least_squares
 
