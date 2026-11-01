@@ -45,7 +45,8 @@ class Data(Struct):
                         stress_regions=None,
                         stress_regions_iranges=None,
                         stress_regions_lin_fits=None,
-                        strains_of_stresses=None)
+                        strains_of_stresses=None,
+                        models={})
 
     def set_initial_values(self, length0=None, area0=None,
                            lengths=None, areas=None):
