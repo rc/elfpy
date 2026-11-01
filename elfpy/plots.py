@@ -166,6 +166,21 @@ def plot_raw_stress_strain(data, fig_num=1, ax=0, label=''):
                 label=label, title='raw stress-strain')
     return ax
 
+def plot_model_stress_strain(data, model='', fig_num=1, ax=0, label=''):
+    if model not in data.models:
+        raise ValueError(
+            f'model {model} data not available, use fit_model() filter!'
+        )
+    mdata = data.models[model]
+
+    ax = _get_ax(fig_num, ax)
+    label = _get_label(data, label)
+    dx, _ = _get_data(data.strain, data.stress)
+    dy = mdata.eval_model(dx, *mdata.pars)
+    _plot_curve(ax, dx, dy, 'strain [1]', 'stress [MPa]',
+                label=label)
+    return ax
+
 def _plot_cycles_colors(data, ax, label, ics):
     colors = make_colors(len(ics))
 
