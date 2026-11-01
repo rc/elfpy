@@ -251,3 +251,19 @@ def save_strain_of_stress(datas, filename='', mode='w'):
             for ic, (strain, stress) in enumerate(data.strains_of_stresses):
                 aux.append('%d, %.5e, %.5e' % (ic, strain, stress))
             fd.write((', '.join(aux)) + '\n')
+
+def save_model_fits(datas, filename='', mode='w'):
+    for model in datas[0].models.keys():
+        if filename:
+            mfilename = _get_filename(datas, filename + f'_{model}', '', 'txt')
+
+        else:
+            mfilename = f'fits_{model}.txt'
+
+        with open(mfilename, mode) as fd:
+            for ii, data in enumerate(datas):
+                mdata = data.models[model]
+                fd.write(
+                    f'{ii}, {data.name}, {mdata.pars}, {mdata.rmse}, {mdata.r2}'
+                    '\n'
+                )
