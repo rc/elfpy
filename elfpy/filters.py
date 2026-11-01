@@ -743,6 +743,72 @@ def fit_stress_strain_cycles_list(data, ics=[0]):
 
     return _fit_stress_strain_cycles(data, ics)
 
+def eval_model_neohook(strain, mu):
+    """
+    Nominal uniaxial stress for the incompressible neo-Hookean model.
+    """
+    stretch = 1.0 + strain
+    return mu * (stretch - stretch**-2.0)
+
+eval_model_neohook.n_pars = 1
+
+def fit_model(data, model='neohook', pars0=None, bounds=None, **kwargs):
+    from scipy.optimize import least_squares
+
+    eval_model = globals()[f'eval_model_{model}']
+    n_pars = eval_model.n_pars
+
+    scale = max(np.max(np.abs(data.stress)), 1e-12)
+
+    def eval_objective(pars):
+        return (eval_model(data.strain, *pars) - data.stress) / scale
+
+    if bounds is None:
+        bounds = ([0.0] * n_pars, [np.inf] * n_pars)
+
+    if pars0 is None:
+        pars0 = [max(np.max(data.stress), 1e-5) / n_pars] * n_pars
+
+    result = least_squares(
+        eval_objective,
+        x0=pars0,
+        bounds=bounds,
+        x_scale='jac',
+        **kwargs,
+    )
+
+    if not result.success:
+        output('warning:', result.message)
+
+    pars = result.x
+
+    stress = eval_model(data.strain, *pars)
+    residual = stress - data.stress
+
+    # Root mean square error.
+    rmse = np.sqrt(np.mean(residual**2))
+
+    # Residual sum of squares.
+    ss_res = np.sum(residual**2)
+    # Total sum of squares.
+    ss_tot = np.sum((data.stress - np.mean(data.stress))**2)
+    # Coefficient of determination.
+    r2 = (1.0 - ss_res / ss_tot) if ss_tot > 0 else np.nan
+
+    output(f'fit parameters: {pars}')
+    output(f'RMSE = {rmse:.8e}')
+    output(f'R^2 = {r2:.8e}')
+
+    data.models[model] = so.Struct(
+        eval_model=eval_model,
+        n_pars=n_pars,
+        pars=pars,
+        rmse=rmse,
+        r2=r2,
+    )
+
+    return data
+
 def savitzky_golay(y, window_size, order, deriv=0, rate=1):
     r"""Smooth (and optionally differentiate) data with a Savitzky-Golay filter.
     The Savitzky-Golay filter removes high frequency noise from data.
