@@ -96,7 +96,8 @@ def _get_label(data, label):
             label = data.name
 
         else:
-            label = ': '.join((data.name, label))
+            label = (label[1:] if label.startswith(':') else
+                     ': '.join((data.name, label)))
 
     return label
 
